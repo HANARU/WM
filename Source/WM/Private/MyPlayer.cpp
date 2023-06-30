@@ -1,99 +1,92 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MyPlayer.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include <Components/CapsuleComponent.h>
 
-// Sets default values
 AMyPlayer::AMyPlayer()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Camera วาด็
-	springArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("springArmComp"));
-	springArmComp->SetupAttachment(GetCapsuleComponent());
-	CamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("tpsCamComp"));
-	CamComp->SetupAttachment(springArmComp);
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
+
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(GetCapsuleComponent());
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->SetRelativeLocation(FVector(0, 0, 70));
+	//SpringArm->SetRelativeLocation(FVector(0, 60, 70));
 
 
-	bUseControllerRotationYaw = true;
-	springArmComp->bUsePawnControlRotation = true;
-	CamComp->bUsePawnControlRotation = false;
+	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	PlayerCamera->SetupAttachment(SpringArm);
+
 }
 
-// Called when the game starts or when spawned
 void AMyPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(PlayerMappingContext, 0);
+		}
+	}
 }
 
-// Called every frame
 void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
 void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	check(PlayerInputComponent);
-	PlayerInputComponent->BindAxis("ForwardAndBackward", this, &AMyPlayer::ForwardAndBackward);
-	PlayerInputComponent->BindAxis("LeftAndRight", this, &AMyPlayer::LeftAndRight);
-	PlayerInputComponent->BindAxis("Lookup", this, &AMyPlayer::LookUp);
-	PlayerInputComponent->BindAxis("Turn", this, &AMyPlayer::Turn);
+	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMyPlayer::Move);
 
+	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayer::Look);
 }
 
-void AMyPlayer::ForwardAndBackward(float value)
+void AMyPlayer::Move(const FInputActionValue& value)
 {
-	if (Controller && value)
+	FVector2D MovementVector = value.Get<FVector2D>();
+
+	if (Controller != nullptr)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		// get forward vector
+
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		AddMovementInput(ForwardDirection, value);
-	}
-}
-
-void AMyPlayer::LeftAndRight(float value)
-{
-	if (Controller && value)
-	{
-
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(RightDirection, value);
+		// add movement 
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
 	}
 }
 
-void AMyPlayer::LookUp(float value)
+void AMyPlayer::Look(const FInputActionValue& value)
 {
+	FVector2D LookAxisVector = value.Get<FVector2D>();
+
 	if (Controller != nullptr)
 	{
-		// add pitch input to controller
-		AddControllerPitchInput(value);
+		// add yaw and pitch input to controller
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(-LookAxisVector.Y);
 	}
 }
-
-void AMyPlayer::Turn(float value)
-{
-	if (Controller != nullptr)
-	{
-		// add Yaw input to controller
-		AddControllerYawInput(value);
-	}
-}
-
