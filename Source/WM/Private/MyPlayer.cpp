@@ -1,4 +1,6 @@
 #include "MyPlayer.h"
+#include "Math/Vector.h"
+#include "CCTV.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Controller.h"
@@ -6,8 +8,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include <Components/CapsuleComponent.h>
+#include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Math/Vector.h"
+
 
 AMyPlayer::AMyPlayer()
 {
@@ -49,34 +52,9 @@ void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (isCovering)
-	// 만약 엄폐를 시도하는중이라면
-	{
-		float temp = DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
-		//디버그용 지워도됌.
-		//UE_LOG(LogTemp, Warning, TEXT("Distance : %f"), temp);
-		//UE_LOG(LogTemp, Warning, TEXT("DistanceToCoverObject : %f"), DistanceToCoverObject);
-		// 벽을 뚫고 갈 수는 없기 때문에 적당한 위치에 도착하면 멈춘다.
-		if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() > 0.1)
-		{
-			// 가까워진 값만큼 다시 초기화
-			DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
-			AddMovementInput(NewLocation - GetMesh()->GetComponentLocation());
-			if (HitActorExtent.Z > 100)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Standing Motion"));
-			}
-			else {
-				UE_LOG(LogTemp, Warning, TEXT("Crouching Motion"));
-			}
-		}
-		else
-		{
-			isCovering = false;
-		}
+	TrackInteractable();
 
-		
-	}
+	CoverCheck();
 }
 
 void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -90,7 +68,6 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayer::Look);
 
 	EnhancedInputComponent->BindAction(CoverAction, ETriggerEvent::Triggered, this, &AMyPlayer::Cover);
-
 }
 
 void AMyPlayer::Move(const FInputActionValue& value)
@@ -123,6 +100,67 @@ void AMyPlayer::Look(const FInputActionValue& value)
 	}
 }
 
+
+void AMyPlayer::InteractStart_1Sec()
+{
+	FString InteractionTimeString = FString::SanitizeFloat(InteractionTime);
+	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, TEXT("InteractionStart"));
+	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);
+
+	if (InteractionTime > 1.f)
+	{
+		InteractionTime = 0.f;
+		if (IsValid(CCTV))
+		{
+			CCTV->ActivateCCTV();
+		}
+		else
+		{
+			return;
+		}
+	}
+	else
+	{
+		InteractionTime = InteractionTime + GetWorld()->GetDeltaSeconds();
+	}
+}
+
+void AMyPlayer::InteractEnd_1Sec()
+{
+	InteractionTime = 0.f;
+	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("InteractionEnd"));
+}
+
+void AMyPlayer::InteractionSinglePress()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
+}
+
+void AMyPlayer::TrackInteractable()
+{
+	FHitResult HitResult;
+	FVector StartVector = PlayerCamera->GetComponentLocation();
+	FVector EndVector = StartVector + PlayerCamera->GetForwardVector() * Distance;
+
+	if (IsPossessing)
+	{
+		GetWorld()->LineTraceSingleByChannel(HitResult, StartVector, EndVector, ECollisionChannel::ECC_GameTraceChannel2);
+		DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Red, false, 0.001, 0, 4.f);
+
+		if (IsValid(HitResult.GetActor()))
+		{
+			FString ObjName = HitResult.GetActor()->GetName();
+			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+
+			CCTV = Cast<ACCTV>(HitResult.GetActor());
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, TEXT("None"));
+		}
+	}
+}
+
 void AMyPlayer::Cover(const FInputActionValue& value)
 {
 	// Trace 입력 값
@@ -144,17 +182,17 @@ void AMyPlayer::Cover(const FInputActionValue& value)
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::Persistent,
+		EDrawDebugTrace::ForOneFrame,
 		HitResult,
 		true
-		);
-	
+	);
+
 	// 충돌이 발생했을 경우
 	if (bHit)
 	{
 		AActor* HitActor = HitResult.GetActor();
 		// collision의 spec(위치,크기) 출력
-		HitActor->GetActorBounds(false, HitActorOrigin,HitActorExtent);
+		HitActor->GetActorBounds(false, HitActorOrigin, HitActorExtent);
 		// 벡터의 내분점을 활용하여 엄폐할 위치를 찾는다.
 		// 50은 임의의 값이다.
 		NewLocation = HitActorOrigin * ((DistanceToCoverObject - 50) / DistanceToCoverObject) + PlayerCamera->GetComponentLocation() * (50 / DistanceToCoverObject);
@@ -162,5 +200,35 @@ void AMyPlayer::Cover(const FInputActionValue& value)
 		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
 		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
 		isCovering = true;
+	}
+}
+
+void AMyPlayer::CoverCheck()
+{
+	if (isCovering)
+		// 만약 엄폐를 시도하는중이라면
+	{
+		float temp = DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
+		//디버그용 지워도됌.
+		//UE_LOG(LogTemp, Warning, TEXT("Distance : %f"), temp);
+		//UE_LOG(LogTemp, Warning, TEXT("DistanceToCoverObject : %f"), DistanceToCoverObject);
+		// 벽을 뚫고 갈 수는 없기 때문에 적당한 위치에 도착하면 멈춘다.
+		if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() > 0.1)
+		{
+			// 가까워진 값만큼 다시 초기화
+			DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
+			AddMovementInput(NewLocation - GetMesh()->GetComponentLocation());
+			if (HitActorExtent.Z > 100)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Standing Motion"));
+			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("Crouching Motion"));
+			}
+		}
+		else
+		{
+			isCovering = false;
+		}
 	}
 }

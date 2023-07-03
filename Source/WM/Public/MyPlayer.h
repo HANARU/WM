@@ -21,6 +21,7 @@ public:
 		class UCameraComponent* PlayerCamera;
 
 
+
 //-----------------------Enhanced Input System--------------------//
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -38,6 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* CoverAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* Interaction;
+
 //-----------------------실행 함수 및 부가 선언-------------------//
 protected:
 	virtual void BeginPlay() override;
@@ -52,6 +56,31 @@ public:
 	void Look(const FInputActionValue& value);
 	void Cover(const FInputActionValue& value);
 
+
+//--------------------해킹 등 상호작용 함수 및 변수----------------//
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool IsPossessing = true;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		float InteractionTime = 0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		float Distance = 2000;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		class ACCTV* CCTV;
+
+	UFUNCTION(BlueprintCallable)
+		void InteractStart_1Sec();
+
+	UFUNCTION(BlueprintCallable)
+		void InteractEnd_1Sec();
+
+	UFUNCTION(BlueprintCallable)
+		void InteractionSinglePress();
+
+	UFUNCTION(BlueprintCallable)
+		void TrackInteractable();
+
+
+//-----------------------은폐 관련 함수 및 변수-------------------//
 public:
 	// 엄폐물의 World 상의 위치
 	FVector HitActorOrigin;
@@ -62,5 +91,7 @@ public:
 	float DistanceToCoverObject = 200;
 	// 엄폐를 하는중인가를 알 수 있는 값
 	bool isCovering = false;
+
+	void CoverCheck();
 
 };

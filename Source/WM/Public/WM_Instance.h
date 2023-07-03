@@ -11,5 +11,7 @@ class WM_API UWM_Instance : public UGameInstance
 
 public:
 	UWM_Instance();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AMyPlayer* Player;
 	
 };

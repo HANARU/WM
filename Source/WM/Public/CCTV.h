@@ -20,13 +20,15 @@ public:
 		class USphereComponent* CollisionArea;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSubclassOf<class AMyPlayer> Player;
+		class AMyPlayer* Player;
+//		TSubclassOf<class AMyPlayer> Player;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float Distance;
+		float Distance = 20000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bIsUsing;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSubclassOf<class ACCTV> TrackedOtherCCTV;
+		class ACCTV* TrackedOtherCCTV;
+//		TSubclassOf<class ACCTV> TrackedOtherCCTV;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float InteractionTime;
 
@@ -39,5 +41,20 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	void ActivateCCTV();
+
+	void PossessCCTV();
+
+	void TrackInteractable();
+
+	UFUNCTION(BlueprintCallable)
+		void InteractStart_1Sec();
+	UFUNCTION(BlueprintCallable)
+		void InteractEnd_1Sec();
+	UFUNCTION(BlueprintCallable)
+		void InteractionSinglePress();
+	UFUNCTION(BlueprintCallable)
+		void Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerController);
 
 };
