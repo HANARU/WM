@@ -52,11 +52,15 @@ void AMyPlayer::Tick(float DeltaTime)
 	if (isCovering)
 	// 만약 엄폐를 시도하는중이라면
 	{
+		float temp = DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
+		//디버그용 지워도됌.
+		//UE_LOG(LogTemp, Warning, TEXT("Distance : %f"), temp);
+		//UE_LOG(LogTemp, Warning, TEXT("DistanceToCoverObject : %f"), DistanceToCoverObject);
 		// 벽을 뚫고 갈 수는 없기 때문에 적당한 위치에 도착하면 멈춘다.
-		if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() < 1)
+		if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() > 0.1)
 		{
 			// 가까워진 값만큼 다시 초기화
-			DistanceToCoverObject = DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
+			DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
 			AddMovementInput(NewLocation - GetMesh()->GetComponentLocation());
 			if (HitActorExtent.Z > 100)
 			{
@@ -66,8 +70,12 @@ void AMyPlayer::Tick(float DeltaTime)
 				UE_LOG(LogTemp, Warning, TEXT("Crouching Motion"));
 			}
 		}
+		else
+		{
+			isCovering = false;
+		}
 
-		isCovering = false;
+		
 	}
 }
 
@@ -82,6 +90,7 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayer::Look);
 
 	EnhancedInputComponent->BindAction(CoverAction, ETriggerEvent::Triggered, this, &AMyPlayer::Cover);
+
 }
 
 void AMyPlayer::Move(const FInputActionValue& value)
@@ -124,11 +133,7 @@ void AMyPlayer::Cover(const FInputActionValue& value)
 
 	//Trace 출력 값
 	FHitResult HitResult;
-	//FVector HitActorOrigin;
-	//FVector HitActorExtent;
 
-	//// 처음에는 collision과의 거리를 알 수 없으니 200으로 초기화해준다.
-	//float DistanceToCoverObject = 200;
 
 	bool bHit = UKismetSystemLibrary::BoxTraceSingle(
 		this,
@@ -136,7 +141,7 @@ void AMyPlayer::Cover(const FInputActionValue& value)
 		TraceStart,
 		HalfSize,
 		TraceOrient,
-		ETraceTypeQuery::TraceTypeQuery1,
+		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
 		EDrawDebugTrace::Persistent,
@@ -152,10 +157,9 @@ void AMyPlayer::Cover(const FInputActionValue& value)
 		HitActor->GetActorBounds(false, HitActorOrigin,HitActorExtent);
 		// 벡터의 내분점을 활용하여 엄폐할 위치를 찾는다.
 		// 50은 임의의 값이다.
-		NewLocation = HitActorOrigin* ((DistanceToCoverObject - 50) / DistanceToCoverObject) + PlayerCamera->GetComponentLocation() * (50 / DistanceToCoverObject);
+		NewLocation = HitActorOrigin * ((DistanceToCoverObject - 50) / DistanceToCoverObject) + PlayerCamera->GetComponentLocation() * (50 / DistanceToCoverObject);
 		// + 10은 Tick에서 필요한 판별식(현재위치-과거위치>1)을 위해 진행한다. -> 실험 후 없애도 됌.  
 		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
-	
 		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
 		isCovering = true;
 	}
