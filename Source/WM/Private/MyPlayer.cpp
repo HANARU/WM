@@ -1,6 +1,7 @@
 #include "MyPlayer.h"
 #include "Math/Vector.h"
 #include "CCTV.h"
+#include "InteractableObject.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Controller.h"
@@ -134,6 +135,10 @@ void AMyPlayer::InteractEnd_1Sec()
 void AMyPlayer::InteractionSinglePress()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
+	if (IsValid(InteractObject))
+	{
+		InteractObject->InteractCheck();
+	}
 }
 
 void AMyPlayer::TrackInteractable()
@@ -153,6 +158,7 @@ void AMyPlayer::TrackInteractable()
 			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 
 			CCTV = Cast<ACCTV>(HitResult.GetActor());
+			InteractObject = Cast<AInteractableObject>(HitResult.GetActor());
 		}
 		else
 		{

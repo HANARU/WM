@@ -79,6 +79,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void TrackInteractable();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AInteractableObject* InteractObject;
+
 
 //-----------------------은폐 관련 함수 및 변수-------------------//
 public:
