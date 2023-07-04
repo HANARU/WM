@@ -94,6 +94,8 @@ public:
 	float DistanceToCoverObject = 200;
 	// 엄폐를 하는중인가를 알 수 있는 값
 	bool isCovering = false;
+	// 엄폐중인가?
+	bool nowCovering = false;
 
 	void CoverCheck();
 
