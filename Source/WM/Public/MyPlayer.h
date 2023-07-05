@@ -67,6 +67,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class ACCTV* CCTV;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UPostProcessComponent* HackingTransition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bProcessEvent = false;
+
 	UFUNCTION(BlueprintCallable)
 		void InteractStart_1Sec();
 

@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/PostProcessComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ACCTV::ACCTV()
@@ -20,9 +21,11 @@ ACCTV::ACCTV()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 
-
 	CollisionArea = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	CollisionArea->SetupAttachment(Camera);
+
+	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
+	HackingTransition->SetVisibility(false);
 }
 
 void ACCTV::BeginPlay()
@@ -54,6 +57,8 @@ void ACCTV::ActivateCCTV()
 
 	MyPlayerController->SetViewTargetWithBlend(this, 1.f);
 
+	HackingTransition->SetVisibility(true);
+
 	FTimerHandle TimerHandle;
 
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACCTV::PossessCCTV, 1.05f, false);
@@ -62,6 +67,7 @@ void ACCTV::ActivateCCTV()
 void ACCTV::PossessCCTV()
 {
 	GetWorld()->GetFirstPlayerController()->Possess(this);
+	HackingTransition->SetVisibility(false);
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, TEXT("Possessed CCTV"));
 }
 
@@ -123,6 +129,7 @@ void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerContro
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Back2Player"));
 	PlayerController->SetViewTargetWithBlend(SinglePlayer, 1.f);
+	HackingTransition->SetVisibility(true);
 	FTimerHandle TimerHandle;
 
 	GetWorldTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this, SinglePlayer]()->void
@@ -130,6 +137,7 @@ void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerContro
 			bIsUsing = false;
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			GetWorld()->GetFirstPlayerController()->Possess(SinglePlayer);
+			HackingTransition->SetVisibility(false);
 		}), 1.05f, false);
 }
 

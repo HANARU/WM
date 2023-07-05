@@ -32,6 +32,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float InteractionTime;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UPostProcessComponent* HackingTransition;
 
 protected:
 	virtual void BeginPlay() override;

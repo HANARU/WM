@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include <Components/CapsuleComponent.h>
+#include "Components/PostProcessComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -33,6 +34,8 @@ AMyPlayer::AMyPlayer()
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	PlayerCamera->SetupAttachment(SpringArm);
 
+	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
+	HackingTransition->SetVisibility(false);
 }
 
 void AMyPlayer::BeginPlay()
