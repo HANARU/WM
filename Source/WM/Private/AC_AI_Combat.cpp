@@ -5,6 +5,7 @@
 #include "AI_EnemyBase.h"
 #include "MyPlayer.h"
 #include "AIModule/Classes/AIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 // Sets default values for this component's properties
 UAC_AI_Combat::UAC_AI_Combat()
 {
@@ -62,17 +63,30 @@ void UAC_AI_Combat::Fire()
 		FName bonename = OwnerEnemy->TargetBones[FMath::RandRange(0, OwnerEnemy->TargetBones.Num() - 1)];
 		FVector boneloc = OwnerEnemy->Target->GetMesh()->GetBoneLocation(bonename);
 		float distance = FVector::Distance(OwnerEnemy->GetActorLocation(), boneloc);
-		float maxrand = FMath::Min(50, distance / 2);
-		boneloc = boneloc + FVector(FMath::FRandRange(-maxrand, maxrand), FMath::FRandRange(-maxrand, maxrand), FMath::FRandRange(-maxrand, maxrand)) - OwnerEnemy->GetActorLocation();
+		float maxrand;
+		if (FMath::RandRange(0, 100) > 5)
+		{
+			maxrand = FMath::Min(FMath::RandRange(70, 100), distance / 2);
+		}
+		else
+		{
+			maxrand = FMath::Min(FMath::RandRange(0, 100), distance / 2);
+		}
+		FVector randvec = FVector(FMath::FRandRange(-1., 1.), FMath::FRandRange(-1., 1.), FMath::FRandRange(-1., 1.));
+		randvec.Normalize();
+		boneloc = boneloc + randvec*maxrand - OwnerEnemy->GetActorLocation();
 		boneloc.Normalize();
 		boneloc = OwnerEnemy->GetActorLocation() + boneloc * 5000;
-		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->GetActorLocation(), boneloc, ECC_GameTraceChannel12, QueryParams);
-		DrawDebugLine(GetWorld(), OwnerEnemy->GetActorLocation(), HitResult.ImpactPoint, FColor::Red, false, -1.f, 0, 2.0f);
+		DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);
+		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->GetActorLocation(), boneloc, ECC_GameTraceChannel4, QueryParams);
+		DrawDebugLine(GetWorld(), OwnerEnemy->GetActorLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
 		if (HitResult.bBlockingHit)
 		{
 			AMyPlayer* player = Cast<AMyPlayer>(HitResult.GetActor());
 			if (player)
 			{
+				count++;	
+				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 50, 12, FColor::Black, false, .1);
 				//hit
 			}
 		}
@@ -102,8 +116,16 @@ void UAC_AI_Combat::StateAttack()
 	}
 	else
 	{
-		OwnerEnemy->TargetDir = OwnerEnemy->Target->GetActorLocation() - OwnerEnemy->GetActorLocation();
-		OwnerEnemy->SetActorRotation(FRotator(0, OwnerEnemy->TargetDir.Rotation().Yaw, 0));
+		if(OwnerEnemy->SeeingTimer >= 1 - GetWorld()->DeltaRealTimeSeconds || OwnerEnemy->SeeingTimer <= 0)
+		{
+			if (OwnerEnemy->TargetLoc != FVector::ZeroVector)
+			{
+				OwnerEnemy->TargetDir = OwnerEnemy->Target->GetActorLocation() - OwnerEnemy->TargetLoc;
+				OwnerEnemy->TargetDir.Normalize();
+			}
+			OwnerEnemy->TargetLoc = OwnerEnemy->Target->GetActorLocation();
+		}
+		OwnerEnemy->SetActorRotation(FRotator(0, (OwnerEnemy->Target->GetActorLocation() - OwnerEnemy->GetActorLocation()).Rotation().Yaw, 0));
 		FireTimer = FMath::Max(0, FireTimer - GetWorld()->DeltaRealTimeSeconds);
 		Fire();
 	}
@@ -111,10 +133,13 @@ void UAC_AI_Combat::StateAttack()
 
 void UAC_AI_Combat::StateChase()
 {
-	float dista = FVector::Distance(moveLoc, OwnerEnemy->GetActorLocation());
-	if (dista < 150)
+	if (OwnerEnemy->GetCharacterMovement()->Velocity == FVector::ZeroVector)
 	{
 		State = ECOMBAT::HOLD;
+		if (OwnerEnemy->TargetDir != FVector::ZeroVector)
+		{
+			OwnerEnemy->SetActorRotation(FRotator(0, OwnerEnemy->TargetDir.Rotation().Yaw, 0));
+		}
 		StateTimer = FMath::RandRange(3, 7);
 	}
 }
@@ -125,6 +150,7 @@ void UAC_AI_Combat::StateHold()
 	if (StateTimer == 0)
 	{
 		State = ECOMBAT::ATTACK;
+		OwnerEnemy->TargetDir = FVector::ZeroVector;
 		OwnerEnemy->TargetLoc = FVector::ZeroVector;
 		OwnerEnemy->bIsBattle = false;
 	}

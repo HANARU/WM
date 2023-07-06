@@ -51,6 +51,8 @@ public:
 	int courage = 40;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	FVector moveLoc;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	int count = 0;
 private:
 	UFUNCTION(BlueprintCallable)
 	void Fire();

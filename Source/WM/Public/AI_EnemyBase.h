@@ -32,8 +32,8 @@ public:
 	class UAC_AI_Combat* battComp;
 
 
-	UPROPERTY(EditAnywhere, Category = "Collision")
-	TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_GameTraceChannel2;
+	//UPROPERTY(EditAnywhere, Category = "Collision")
+	//TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_GameTraceChannel2;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	class UPawnSensingComponent* PawnSensing;
 	UPROPERTY(EditAnywhere, Category = "USERAI")

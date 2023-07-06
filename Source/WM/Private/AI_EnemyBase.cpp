@@ -59,14 +59,13 @@ FHitResult AAI_EnemyBase::LineTraceSocket(FName SocketName, ACharacter* TargetCh
 	FHitResult Hit;
 	FVector TraceStart = GetMesh()->GetSocketLocation(FName(TEXT("head")));
 	FVector TraceEnd = TargetCharacter->GetMesh()->GetSocketLocation(SocketName);
-	GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, TraceChannelProperty, QueryParams);
+	GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_GameTraceChannel4, QueryParams);
 	return Hit;
 }
 
 void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 {
 	AMyPlayer* player = Cast<AMyPlayer>(OtherPawn);
-	PRINT_LOG(TEXT("ASASAS"));
 	if (player)
 	{
 		int result = 0;
@@ -111,12 +110,6 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 		if (result > 100)
 		{
 			Target = player;
-			if (TargetLoc == FVector::ZeroVector)
-			{
-				TargetDir = player->GetActorLocation() - TargetLoc;
-				TargetDir.Normalize();
-			}
-			TargetLoc = player->GetActorLocation();
 			SeeingTimer = 1.0;
 			if (!bIsBattle)
 			{
