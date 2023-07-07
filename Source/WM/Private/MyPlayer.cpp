@@ -40,11 +40,11 @@ AMyPlayer::AMyPlayer()
 	CenterArrow->SetupAttachment(GetMesh());
 
 	Left45DetectArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Left45DetectArrow"));
-	Left45DetectArrow->SetRelativeRotation(FRotator(0, -90, 0));
+	Left45DetectArrow->SetRelativeRotation(FRotator(0, -45, 0));
 	Left45DetectArrow->SetupAttachment(GetCapsuleComponent());
 
 	Right45DetectArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Right45DetectArrow"));
-	Right45DetectArrow->SetRelativeRotation(FRotator(0, 90, 0));
+	Right45DetectArrow->SetRelativeRotation(FRotator(0, 45, 0));
 	Right45DetectArrow->SetupAttachment(GetCapsuleComponent());
 
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
