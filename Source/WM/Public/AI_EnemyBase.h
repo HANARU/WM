@@ -24,14 +24,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 public:
 	UPROPERTY(EditAnywhere, Category = "FSM")
-	bool bIsBattle;
-public:
-	UPROPERTY(EditAnywhere, Category = "FSM")
 	class UAC_AI_NonCombat* idleComp;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	class UAC_AI_Combat* battComp;
 
-
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	bool bIsBattle;
 	//UPROPERTY(EditAnywhere, Category = "Collision")
 	//TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_GameTraceChannel2;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
@@ -48,10 +46,12 @@ public:
 	FVector TargetDir;
 
 	UPROPERTY(EditAnywhere, Category = "USERAI")
-	class AAIController* aicontroller;
+	class AAIController* aicontroller; 
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn *OtherPawn);
+	UFUNCTION(BlueprintCallable)
+	void SetAttack(AMyPlayer* player);
 	UFUNCTION(BlueprintCallable)
 	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
 };

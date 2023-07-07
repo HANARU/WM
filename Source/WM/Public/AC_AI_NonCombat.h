@@ -49,4 +49,6 @@ public:
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetRandomPoint();
+	UFUNCTION(BlueprintCallable)
+	void StateChange(ENONCOMBAT ChageState);
 };

@@ -53,7 +53,7 @@ public:
 	FVector moveLoc;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	int count = 0;
-private:
+public:
 	UFUNCTION(BlueprintCallable)
 	void Fire();
 	UFUNCTION()
@@ -62,4 +62,6 @@ private:
 	void StateChase();
 	UFUNCTION()
 	void StateHold();
+	UFUNCTION()
+	void StateChange(ECOMBAT ChageState);
 };

@@ -5,6 +5,7 @@
 #include "AI_EnemyBase.h"
 #include "AIModule/Classes/AIController.h"
 #include "../WM.h"
+#include "../../../../UE_5.2/Engine/Source/Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
 // Sets default values for this component's properties
 UAC_AI_NonCombat::UAC_AI_NonCombat()
 {
@@ -52,5 +53,20 @@ void UAC_AI_NonCombat::SetRandomPoint()
 	if (OwnerEnemy->aicontroller)
 	{;
 		OwnerEnemy->aicontroller->MoveToLocation(loc);
+	}
+}
+
+void UAC_AI_NonCombat::StateChange(ENONCOMBAT ChageState)
+{
+	State = ChageState;
+	OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 200;
+	switch (State)
+	{
+	case ENONCOMBAT::IDLE:
+		break;
+	case ENONCOMBAT::MOVE:
+		break;
+	default:
+		break;
 	}
 }

@@ -109,14 +109,19 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 		}
 		if (result > 100)
 		{
-			Target = player;
-			SeeingTimer = 1.0;
-			if (!bIsBattle)
-			{
-				bIsBattle = true;
-			}
-			aicontroller->StopMovement();
-			battComp->State = ECOMBAT::ATTACK;
+			SetAttack(player);
 		}
 	}
+}
+
+void AAI_EnemyBase::SetAttack(AMyPlayer* player)
+{
+	Target = player;
+	SeeingTimer = 1.0;
+	if (!bIsBattle)
+	{
+		bIsBattle = true;
+	}
+	aicontroller->StopMovement();
+	battComp->StateChange(ECOMBAT::ATTACK);
 }

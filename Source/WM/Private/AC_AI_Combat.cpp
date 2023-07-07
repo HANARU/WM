@@ -77,7 +77,7 @@ void UAC_AI_Combat::Fire()
 		boneloc = boneloc + randvec*maxrand - OwnerEnemy->GetActorLocation();
 		boneloc.Normalize();
 		boneloc = OwnerEnemy->GetActorLocation() + boneloc * 5000;
-		DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);
+		//DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);
 		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->GetActorLocation(), boneloc, ECC_GameTraceChannel4, QueryParams);
 		DrawDebugLine(GetWorld(), OwnerEnemy->GetActorLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
 		if (HitResult.bBlockingHit)
@@ -86,7 +86,7 @@ void UAC_AI_Combat::Fire()
 			if (player)
 			{
 				count++;	
-				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 50, 12, FColor::Black, false, .1);
+				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 50, 12, FColor::Red, false, 1);
 				//hit
 			}
 		}
@@ -105,12 +105,13 @@ void UAC_AI_Combat::StateAttack()
 		int random = FMath::RandRange(0, 100);
 		if (result == EPathFollowingRequestResult::Failed && random > courage)
 		{
-			State = ECOMBAT::HOLD;
+			StateChange(ECOMBAT::HOLD);
 			StateTimer = FMath::RandRange(3, 7);
 		}
 		else
 		{
-			State = ECOMBAT::CHASE;
+			StateChange(ECOMBAT::CHASE);
+			OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 100;
 		}
 		OwnerEnemy->Target = nullptr;
 	}
@@ -135,7 +136,7 @@ void UAC_AI_Combat::StateChase()
 {
 	if (OwnerEnemy->GetCharacterMovement()->Velocity == FVector::ZeroVector)
 	{
-		State = ECOMBAT::HOLD;
+		StateChange(ECOMBAT::HOLD);
 		if (OwnerEnemy->TargetDir != FVector::ZeroVector)
 		{
 			OwnerEnemy->SetActorRotation(FRotator(0, OwnerEnemy->TargetDir.Rotation().Yaw, 0));
@@ -149,9 +150,29 @@ void UAC_AI_Combat::StateHold()
 	StateTimer = FMath::Max(0, StateTimer - GetWorld()->DeltaRealTimeSeconds);
 	if (StateTimer == 0)
 	{
-		State = ECOMBAT::ATTACK;
+		StateChange(ECOMBAT::ATTACK);
 		OwnerEnemy->TargetDir = FVector::ZeroVector;
 		OwnerEnemy->TargetLoc = FVector::ZeroVector;
 		OwnerEnemy->bIsBattle = false;
+	}
+}
+
+void UAC_AI_Combat::StateChange(ECOMBAT ChageState)
+{
+	State = ChageState;
+	OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 200;
+	switch (State)
+	{
+	case ECOMBAT::ATTACK:
+		break;
+	case ECOMBAT::HIDDEN:
+		break;
+	case ECOMBAT::CHASE:
+		OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 100;
+		break;
+	case ECOMBAT::HOLD:
+		break;
+	default:
+		break;
 	}
 }
