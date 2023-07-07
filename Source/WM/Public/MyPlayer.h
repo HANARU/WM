@@ -16,11 +16,15 @@ public:
 	AMyPlayer();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
-		class USpringArmComponent* SpringArm;
+	class USpringArmComponent* SpringArm;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
-		class UCameraComponent* PlayerCamera;
-
-
+	class UCameraComponent* PlayerCamera;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Arrow)
+	class UArrowComponent* CenterArrow;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Arrow)
+	class UArrowComponent* Left45DetectArrow;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Arrow)
+	class UArrowComponent* Right45DetectArrow;
 
 //-----------------------Enhanced Input System--------------------//
 public:
@@ -97,11 +101,21 @@ public:
 	// 충돌체의 크기
 	FVector HitActorExtent;
 	float DistanceToCoverObject = 200;
-	// 엄폐를 하는중인가를 알 수 있는 값
+	// 엄폐를 하는중인가?
 	bool isCovering = false;
+	// 엄폐중 얻는 Object의 Normal Vector
+	FVector CoverObjectNormal;
+	FVector CoverObjectOrthogonal;
+
 	// 엄폐중인가?
 	bool nowCovering = false;
-
+	bool leftDetect = false;
+	bool rightDetect =false;
+	bool canGoDetect = false;
+	
+	
 	void CoverCheck();
+	void CoverMovement();
+	float GetDeltaRotate();
 
 };
