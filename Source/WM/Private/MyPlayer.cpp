@@ -433,7 +433,7 @@ void AMyPlayer::CoverMovement()
 
 	// Box Trace ÀÔ·Â °ª
 	FVector TraceStart = GetMesh()->GetComponentLocation() + GetMesh()->GetRightVector() * 30;
-	FRotator TraceOrient = FRotator(0,0,0);
+	FRotator TraceOrient = UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal);
 	FVector HalfSize = FVector(8,72,32);
 	//TArray<AActor*> ActorsToIgnore;
 
