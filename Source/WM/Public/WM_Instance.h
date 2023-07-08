@@ -13,5 +13,4 @@ public:
 	UWM_Instance();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AMyPlayer* Player;
-	
 };

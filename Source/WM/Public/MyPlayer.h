@@ -46,6 +46,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* Interaction;
 
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* MouseLeftClick;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* MouseRightClick;*/
+
 //-----------------------실행 함수 및 부가 선언-------------------//
 protected:
 	virtual void BeginPlay() override;
@@ -89,7 +95,7 @@ public:
 		void TrackInteractable();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class AInteractableObject* InteractObject;
+		class AHackableActor* HackableActor;
 
 
 //-----------------------은폐 관련 함수 및 변수-------------------//
@@ -118,4 +124,15 @@ public:
 	void CoverMovement();
 	float GetDeltaRotate();
 
+//-----------------------교전을 위한 함수, 변수-------------------//
+
+	UFUNCTION(BlueprintCallable)
+		void Shoot();
+	UFUNCTION(BlueprintCallable)
+		void Zoom();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		class USceneComponent* ShootStartPoint;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float ShootRange = 2000;
 };

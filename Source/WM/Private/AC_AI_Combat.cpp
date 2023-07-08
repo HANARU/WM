@@ -78,7 +78,7 @@ void UAC_AI_Combat::Fire()
 		boneloc.Normalize();
 		boneloc = OwnerEnemy->GetActorLocation() + boneloc * 5000;
 		//DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);
-		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->GetActorLocation(), boneloc, ECC_GameTraceChannel4, QueryParams);
+		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->GetActorLocation(), boneloc, ECC_GameTraceChannel6, QueryParams);
 		DrawDebugLine(GetWorld(), OwnerEnemy->GetActorLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
 		if (HitResult.bBlockingHit)
 		{

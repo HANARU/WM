@@ -1,6 +1,8 @@
 #include "MyPlayer.h"
 #include "Math/Vector.h"
 #include "CCTV.h"
+#include "AI_EnemyBase.h"
+#include "HackableActor.h"
 #include "InteractableObject.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -35,6 +37,10 @@ AMyPlayer::AMyPlayer()
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	PlayerCamera->SetupAttachment(SpringArm);
+
+	ShootStartPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ShootStartPoint"));
+	ShootStartPoint->SetupAttachment(GetMesh());
+	ShootStartPoint->SetRelativeLocation(FVector(-40, 20, 130));
 
 	CenterArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("CenterArrow"));
 	CenterArrow->SetupAttachment(GetMesh());
@@ -233,9 +239,9 @@ void AMyPlayer::InteractEnd_1Sec()
 void AMyPlayer::InteractionSinglePress()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
-	if (IsValid(InteractObject))
+	if (IsValid(HackableActor))
 	{
-		InteractObject->InteractCheck();
+		HackableActor->Action_Interact();
 	}
 }
 
@@ -256,11 +262,7 @@ void AMyPlayer::TrackInteractable()
 			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 
 			CCTV = Cast<ACCTV>(HitResult.GetActor());
-			InteractObject = Cast<AInteractableObject>(HitResult.GetActor());
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, TEXT("None"));
+			HackableActor = Cast<AHackableActor>(HitResult.GetActor());
 		}
 	}
 }
@@ -332,6 +334,31 @@ void AMyPlayer::Cover(const FInputActionValue& value)
 		CoverObjectNormal = LineHitResult.Normal;
 		CoverObjectNormal.Normalize();
 	}
+}
+
+void AMyPlayer::Shoot()
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Fire"));
+	
+	FHitResult HitResult;
+	FVector StartLocation = ShootStartPoint->GetComponentLocation();
+	FVector EndLocation = PlayerCamera->GetComponentLocation() + PlayerCamera->GetForwardVector() * ShootRange;
+
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_EngineTraceChannel6);
+	DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
+
+	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
+	if(IsValid(Enemy))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
+	}
+}
+
+void AMyPlayer::Zoom()
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Zoom"));
+
+
 }
 
 void AMyPlayer::CoverCheck()
