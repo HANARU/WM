@@ -16,6 +16,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include <Components/ArrowComponent.h>
 #include <Kismet/KismetMathLibrary.h>
+#include "Math/Quat.h"
+
 
 
 AMyPlayer::AMyPlayer()
@@ -46,12 +48,16 @@ AMyPlayer::AMyPlayer()
 	CenterArrow->SetupAttachment(GetMesh());
 
 	Left45DetectArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Left45DetectArrow"));
+	Left45DetectArrow->SetRelativeLocation(FVector(0,-40,0));
 	Left45DetectArrow->SetRelativeRotation(FRotator(0, -45, 0));
 	Left45DetectArrow->SetupAttachment(GetCapsuleComponent());
 
 	Right45DetectArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Right45DetectArrow"));
+	Right45DetectArrow->SetRelativeLocation((FVector(0,40,0)));
 	Right45DetectArrow->SetRelativeRotation(FRotator(0, 45, 0));
 	Right45DetectArrow->SetupAttachment(GetCapsuleComponent());
+
+
 
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
@@ -76,7 +82,7 @@ void AMyPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	TrackInteractable();
-	if(isCovering) CoverCheck();
+	if(isCovering) Covering();
 	// 엄폐 시 Trace Line Collision을 만들어준다.
 	if(nowCovering) CoverMovement();
 }
@@ -91,7 +97,7 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayer::Look);
 
-	EnhancedInputComponent->BindAction(CoverAction, ETriggerEvent::Triggered, this, &AMyPlayer::Cover);
+	EnhancedInputComponent->BindAction(CoverAction, ETriggerEvent::Triggered, this, &AMyPlayer::CoverCheck);
 }
 
 void AMyPlayer::Move(const FInputActionValue& value)
@@ -135,12 +141,12 @@ void AMyPlayer::Move(const FInputActionValue& value)
 			}
 			else
 			{
-				if (MovementVector.Y < 0 && rightDetect)
+				if (MovementVector.Y < 0 && leftDetect)
 				{
 					AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
 					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
 				}
-				else if (leftDetect && MovementVector.Y > 0)
+				else if (rightDetect && MovementVector.Y > 0)
 				{
 					AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
 					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
@@ -164,12 +170,12 @@ void AMyPlayer::Move(const FInputActionValue& value)
 			}
 			else {
 
-				if (MovementVector.Y > 0 && rightDetect)
+				if (MovementVector.Y > 0 && leftDetect)
 				{
 					AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
 					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
 				}
-				else if (leftDetect && MovementVector.Y < 0)
+				else if (rightDetect && MovementVector.Y < 0)
 				{
 					AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
 					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
@@ -267,72 +273,15 @@ void AMyPlayer::TrackInteractable()
 	}
 }
 
-void AMyPlayer::Cover(const FInputActionValue& value)
-{
-	// Box Trace 입력 값
-	FVector TraceStart = PlayerCamera->GetComponentLocation() + PlayerCamera->GetForwardVector() * 400;
-	FRotator TraceOrient = PlayerCamera->GetComponentRotation();
-	FVector HalfSize = FVector(300, 70, 100);
-	TArray<AActor*> ActorsToIgnore;
-	
-	// Line Trace 입력 값
-	FVector LineTraceStart = GetArrowComponent()->GetComponentLocation();
-	FVector LineTraceEnd = LineTraceStart + GetArrowComponent()->GetForwardVector() * 500;
-
-	// Box Trace 출력 값
-	FHitResult HitResult;
-	
-	// Line Trace 출력값
-	FHitResult LineHitResult;
-
-	// BoxTrace
-	bool bHit = UKismetSystemLibrary::BoxTraceSingle(
-		this,
-		TraceStart,
-		TraceStart,
-		HalfSize,
-		TraceOrient,
-		ETraceTypeQuery::TraceTypeQuery3,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
-		HitResult,
-		true
-	);
-
-	// Box 충돌이 발생했을 경우
-	if (bHit)
+void AMyPlayer::CoverCheck(const FInputActionValue& value)
+{	
+	for (int i = 0; i < 3; i++)
 	{
-		AActor* HitActor = HitResult.GetActor();
-		// collision의 spec(위치,크기) 출력
-		HitActor->GetActorBounds(false, HitActorOrigin, HitActorExtent);
-		// 벡터의 내분점을 활용하여 엄폐할 위치를 찾는다.
-		// 50은 임의의 값이다.
-		NewLocation = HitActorOrigin * ((DistanceToCoverObject - 50) / DistanceToCoverObject) + PlayerCamera->GetComponentLocation() * (50 / DistanceToCoverObject);
-		// + 10은 Tick에서 필요한 판별식(현재위치-과거위치>1)을 위해 진행한다. -> 실험 후 없애도 됌.  
-		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
-		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
-		isCovering = true;
-	}
-
-	// LineTrace 
-	bool LHit = UKismetSystemLibrary::LineTraceSingle(
-		this,
-		LineTraceStart,
-		LineTraceEnd,
-		ETraceTypeQuery::TraceTypeQuery3,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::Persistent,
-		LineHitResult,
-		true
-	);
-
-	// Line Hit 발생했을 경우
-	if (LHit)
-	{
-		CoverObjectNormal = LineHitResult.Normal;
-		CoverObjectNormal.Normalize();
+		bool RHit = ConverLineTrace(i*LineTraceDegree);
+		// 충돌체가 감지되면 LineTrace 중지
+		if (RHit) break;
+		bool LHit = ConverLineTrace(-i*LineTraceDegree);
+		if(LHit) break;
 	}
 }
 
@@ -361,23 +310,17 @@ void AMyPlayer::Zoom()
 
 }
 
-void AMyPlayer::CoverCheck()
+void AMyPlayer::Covering()
 {
 
 	float temp = DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
-	// 벽을 뚫고 갈 수는 없기 때문에 적당한 위치에 도착하면 멈춘다.
+	//적당한 위치에 도착하면 멈춘다.
 	if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() > 0.1)
 	{
 		// 가까워진 값만큼 다시 초기화
 		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
-		AddMovementInput(NewLocation - GetMesh()->GetComponentLocation());
-		if (HitActorExtent.Z > 100)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Standing Motion"));
-		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("Crouching Motion"));
-		}
+		AddMovementInput(HitActorOrigin - GetMesh()->GetComponentLocation());
+		
 	}
 	else
 	{
@@ -386,83 +329,66 @@ void AMyPlayer::CoverCheck()
 		if (CoverObjectNormal.Length() != 0)
 		{
 			this->SetActorRotation(CoverObjectNormal.Rotation());
-			//Rotation이 끝난 후 Normal Vector의 Orthogonal Vector을 만들어준다.
+			//Rotation이 끝난 후 Normal Vector의 Orthogonal Vector을 만들어준다. For Movement
 			CoverObjectOrthogonal = FVector::CrossProduct(CoverObjectNormal, GetMesh()->GetUpVector());
 		}
 	}
 	
 }
 
+bool AMyPlayer::ConverLineTrace(float degree)
+{
+	// Line Trace 입력 값
+	FVector LineTraceStart = PlayerCamera->GetComponentLocation();
+	FRotator Rot (0.f, degree, 0.f);
+	FVector RotVector = UKismetMathLibrary::Quat_RotateVector(Rot.Quaternion(), PlayerCamera->GetForwardVector()) * 500;
+	FVector LineTraceEnd = LineTraceStart + RotVector;
+	TArray<AActor*> ActorsToIgnore;
+
+	// Line Trace 출력값
+	FHitResult LineHitResult;
+
+	// LineTrace 
+	bool Hit = UKismetSystemLibrary::LineTraceSingle(
+		this,
+		LineTraceStart,
+		LineTraceEnd,
+		ETraceTypeQuery::TraceTypeQuery3,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForOneFrame,
+		LineHitResult,
+		true
+	);
+
+	if(Hit) 
+	{
+		//만약 Object 식별이 되었다면 전역변수에 할당해준다.
+		CoverLineHitResult = LineHitResult;
+		// Object의 Normal Vector를 가져온다. 
+		CoverObjectNormal = LineHitResult.Normal;
+		CoverObjectNormal.Normalize();
+
+		// Object의 (위치,크기) 출력
+		LineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
+		HitActorOrigin = LineHitResult.Location;
+		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
+		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
+		isCovering = true;
+		return true;
+	}
+	else return false;
+}
+
 void AMyPlayer::CoverMovement()
 {
 
-	// LeftBehind Line Trace 입력 값
-	FVector LeftLineTraceStart = Left45DetectArrow->GetComponentLocation() + Left45DetectArrow->GetForwardVector() * -75;
-	FVector LeftLineTraceEnd = LeftLineTraceStart + Left45DetectArrow->GetForwardVector() * 150;
 	TArray<AActor*> ActorsToIgnore;
-
-	// LeftBehind Line Trace 출력값
-	FHitResult LeftLineHitResult;
-
-	// LeftBehind LineTrace 
-	bool LHit = UKismetSystemLibrary::LineTraceSingle(
-		this,
-		LeftLineTraceStart,
-		LeftLineTraceEnd,
-		ETraceTypeQuery::TraceTypeQuery3,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
-		LeftLineHitResult,
-		true
-	);
-
-	// Line Hit 발생했을 경우
-	if (LHit)
-	{
-		leftDetect = true;
-	}
-	else {
-		leftDetect = false;
-	}
-
-	// RightBehind Line Trace 입력 값
-	FVector RightLineTraceStart = Right45DetectArrow->GetComponentLocation() + Right45DetectArrow->GetForwardVector() * -75;
-	FVector RightLineTraceEnd = RightLineTraceStart + Right45DetectArrow->GetForwardVector() * 150;
-
-	// RightBehind Line Trace 출력값
-	FHitResult RightLineHitResult;
-
-	// RightBehind LineTrace 
-	bool RHit = UKismetSystemLibrary::LineTraceSingle(
-		this,
-		RightLineTraceStart,
-		RightLineTraceEnd,
-		ETraceTypeQuery::TraceTypeQuery3,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
-		RightLineHitResult,
-		true
-	);
-
-	// Line Hit 발생했을 경우
-	if (RHit)
-	{
-		rightDetect = true;
-	}
-	else {
-		rightDetect = false;
-	}
-
-	UE_LOG(LogTemp,Warning,TEXT("%d, %d"), leftDetect, rightDetect);
-
 
 	// Box Trace 입력 값
 	FVector TraceStart = GetMesh()->GetComponentLocation() + GetMesh()->GetRightVector() * 30;
 	FRotator TraceOrient = UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal);
 	FVector HalfSize = FVector(8,72,32);
-	//TArray<AActor*> ActorsToIgnore;
 
 	// Box Trace 출력 값
 	FHitResult HitResult;
@@ -483,14 +409,63 @@ void AMyPlayer::CoverMovement()
 	);
 
 	// Box 충돌이 발생했을 경우
-	if (bHit)
-	{
-		canGoDetect = true;
-	}
-	else
-	{
-		canGoDetect =false;
-	}
+	canGoDetect = bHit? true : false;
+	
+
+	// Sphere Collision 관련 
+	FVector SphereTraceStart = GetCapsuleComponent()->GetComponentLocation();
+	FHitResult SphereHitResult;
+
+	bool SHit = UKismetSystemLibrary::SphereTraceSingle(
+		this,
+		SphereTraceStart,
+		SphereTraceStart,
+		40.f,
+		ETraceTypeQuery::TraceTypeQuery3,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		SphereHitResult,
+		true
+	);
+
+	attached = SHit ? true : false;
+
+	FVector SphereLeftTraceStart = Left45DetectArrow->GetComponentLocation();
+	FHitResult SphereLeftHitResult;
+
+	bool LSHit = UKismetSystemLibrary::SphereTraceSingle(
+		this,
+		SphereLeftTraceStart,
+		SphereLeftTraceStart,
+		70.f,
+		ETraceTypeQuery::TraceTypeQuery3,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForOneFrame,
+		SphereLeftHitResult,
+		true
+	);
+
+	leftDetect = LSHit ? true : false;
+
+	FVector SphereRightTraceStart = Right45DetectArrow->GetComponentLocation();
+	FHitResult SphereRightHitResult;
+
+	bool RSHit = UKismetSystemLibrary::SphereTraceSingle(
+		this,
+		SphereRightTraceStart,
+		SphereRightTraceStart,
+		70.f,
+		ETraceTypeQuery::TraceTypeQuery3,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForOneFrame,
+		SphereRightHitResult,
+		true
+	);
+
+	rightDetect = RSHit ? true : false;
 }
 
 float AMyPlayer::GetDeltaRotate()

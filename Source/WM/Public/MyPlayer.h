@@ -64,7 +64,7 @@ public:
 public:
 	void Move(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
-	void Cover(const FInputActionValue& value);
+	void CoverCheck(const FInputActionValue& value);
 
 
 //--------------------해킹 등 상호작용 함수 및 변수----------------//
@@ -102,10 +102,10 @@ public:
 public:
 	// 엄폐물의 World 상의 위치
 	FVector HitActorOrigin;
+	FVector HitActorExtent;
 	// 벡터 내분점으로 통해 얻은 엄폐 실제 위치
 	FVector NewLocation;
 	// 충돌체의 크기
-	FVector HitActorExtent;
 	float DistanceToCoverObject = 200;
 	// 엄폐를 하는중인가?
 	bool isCovering = false;
@@ -117,10 +117,17 @@ public:
 	bool nowCovering = false;
 	bool leftDetect = false;
 	bool rightDetect =false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool canGoDetect = false;
-	
-	
-	void CoverCheck();
+	bool attached = false;
+
+
+	//엄폐할 장소가 있는지 판단하는 함수
+	void Covering();
+	bool ConverLineTrace(float degree);
+	float LineTraceDegree = 15;
+	FHitResult CoverLineHitResult;
+	//엄폐 후 움직임에 대한 정의
 	void CoverMovement();
 	float GetDeltaRotate();
 
