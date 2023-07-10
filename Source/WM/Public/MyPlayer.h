@@ -136,10 +136,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void Shoot();
 	UFUNCTION(BlueprintCallable)
-		void Zoom();
+		void ZoomIn();
+	UFUNCTION(BlueprintCallable)
+		void ZoomOut();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class USceneComponent* ShootStartPoint;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float ShootRange = 2000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float HorizontalRecoil = -0.3f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float VerticalRecoil = -0.5f;
 };

@@ -296,18 +296,29 @@ void AMyPlayer::Shoot()
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_EngineTraceChannel6);
 	DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
 
+	AddControllerYawInput(HorizontalRecoil);
+	AddControllerPitchInput(VerticalRecoil);
+
+
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
 	if(IsValid(Enemy))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
+		Enemy->SetAttack(this);
 	}
 }
 
-void AMyPlayer::Zoom()
+void AMyPlayer::ZoomIn()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Zoom"));
+	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
 
 
+}
+
+void AMyPlayer::ZoomOut()
+{
+	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
 }
 
 void AMyPlayer::Covering()
@@ -356,7 +367,7 @@ bool AMyPlayer::ConverLineTrace(float degree)
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		LineHitResult,
 		true
 	);
@@ -403,7 +414,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		HitResult,
 		true
 	);
@@ -442,7 +453,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		SphereLeftHitResult,
 		true
 	);
@@ -460,7 +471,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		SphereRightHitResult,
 		true
 	);
