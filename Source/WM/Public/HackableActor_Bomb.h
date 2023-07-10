@@ -10,6 +10,11 @@ class WM_API AHackableActor_Bomb : public AHackableActor
 	GENERATED_BODY()
 
 public:
+	AHackableActor_Bomb();
+
 	virtual void Action_Interact() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UNiagaraSystem* FXExplosion;
 	
 };

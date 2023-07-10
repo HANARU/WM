@@ -19,9 +19,6 @@ AHackableActor::AHackableActor()
 void AHackableActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	CollisionArea->OnComponentBeginOverlap.AddDynamic(this, &AHackableActor::OnOverlapBegin);
-	
 }
 
 void AHackableActor::Tick(float DeltaTime)
@@ -32,14 +29,5 @@ void AHackableActor::Tick(float DeltaTime)
 
 void AHackableActor::Action_Interact()
 {
-}
-
-void AHackableActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor != nullptr)
-	{
-		Enemy = Cast<AAI_EnemyBase>(OtherActor);
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Enemy Detected"));
-	}
 }
 

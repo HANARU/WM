@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Components/PostProcessComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetStringLibrary.h"
 
 ACCTV::ACCTV()
 {
@@ -39,7 +40,6 @@ void ACCTV::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	TrackInteractable();
-
 }
 
 void ACCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -85,7 +85,10 @@ void ACCTV::TrackInteractable()
 		GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
 		if (IsValid(HitResult.GetActor()))
 		{
-			FString ObjName = HitResult.GetActor()->GetName();
+			FString ObjName;
+			ObjName.Append("Current is ");
+			ObjName.Append(HitResult.GetActor()->GetName());
+
 			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 
 			TrackedOtherCCTV = Cast<ACCTV>(HitResult.GetActor());
@@ -106,6 +109,7 @@ void ACCTV::InteractStart_1Sec()
 			TrackedOtherCCTV->ActivateCCTV();
 			GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, TEXT("Move to Other Camera"));
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			bIsUsing = false;
 		}
 	}
 	else
@@ -138,6 +142,7 @@ void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerContro
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			GetWorld()->GetFirstPlayerController()->Possess(SinglePlayer);
 			HackingTransition->SetVisibility(false);
+			
 		}), 1.05f, false);
 }
 
