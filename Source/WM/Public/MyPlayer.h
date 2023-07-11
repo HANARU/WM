@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
 #include "InputActionValue.h"
 #include "MyPlayer.generated.h"
 
@@ -26,6 +27,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Arrow)
 	class UArrowComponent* Right45DetectArrow;
 
+	
+
 //-----------------------Enhanced Input System--------------------//
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -46,6 +49,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* Interaction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* VaultAction;
+
 	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* MouseLeftClick;
 
@@ -65,6 +71,7 @@ public:
 	void Move(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
 	void CoverCheck(const FInputActionValue& value);
+	void Vault(const FInputActionValue& value);
 
 
 //--------------------해킹 등 상호작용 함수 및 변수----------------//
@@ -130,6 +137,25 @@ public:
 	//엄폐 후 움직임에 대한 정의
 	void CoverMovement();
 	float GetDeltaRotate();
+
+
+//-----------------------Vault Warp를 위한 함수, 변수-------------------//
+
+	// 넘을 물체와 나와의 간격
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
+	float DistanceToObject = 70;
+	// 점프할 수 있는 한계 높이
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
+	float VaultLimit = 150;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
+	float LineDelta = 30;
+
+	// 뛰어넘을 수 있는가?
+	bool canVault = false;
+
+	FVector StartPos;
+	FVector MiddlePos;
+	FVector LastPos;
 
 //-----------------------교전을 위한 함수, 변수-------------------//
 

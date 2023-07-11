@@ -98,6 +98,8 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayer::Look);
 
 	EnhancedInputComponent->BindAction(CoverAction, ETriggerEvent::Triggered, this, &AMyPlayer::CoverCheck);
+
+	EnhancedInputComponent->BindAction(VaultAction, ETriggerEvent::Triggered, this, &AMyPlayer::Vault);
 }
 
 void AMyPlayer::Move(const FInputActionValue& value)
@@ -208,6 +210,74 @@ void AMyPlayer::Look(const FInputActionValue& value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(-LookAxisVector.Y);
+	}
+}
+
+void AMyPlayer::Vault(const FInputActionValue& value)
+{
+	// Motion Warp 정의
+
+	// LineTrace 발사
+	// 입력 값
+	FVector Start = GetCapsuleComponent()->GetComponentLocation();
+	FVector End = Start + GetCapsuleComponent()->GetForwardVector() * DistanceToObject;
+	TArray<AActor*> ActorsToIgnore;
+	FHitResult HitResult;
+	
+	bool LineHit = UKismetSystemLibrary::LineTraceSingle(
+		this,
+		Start,
+		End,
+		TraceTypeQuery3,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResult,
+		true
+	);
+	
+	if (LineHit)
+	{
+		// 성공하면 Location을 확인해야하고, 
+		// 물체의 높이를 확인해야 한다. -> Vault 범위를 위해
+		FVector BoxOrigin;
+		FVector BoxExtent;
+		HitResult.GetActor()->GetActorBounds(false,BoxOrigin, BoxExtent);
+		float SubHeight = BoxExtent.Z - HitResult.Location.Z;
+
+		if (SubHeight < VaultLimit)
+		{// 적당한 Vault 높이라면 
+		// Vertical LineTrace를 호출한다. 
+			for(int i = 1; i<4; i++)
+			{
+				FVector VerticalStart = HitResult.Location + FVector(0, 0, VaultLimit) + GetActorForwardVector() * LineDelta * i;
+				FVector VerticalEnd = VerticalStart - FVector(0, 0, 1000);
+				bool VerticalHit = UKismetSystemLibrary::LineTraceSingle(
+					this,
+					VerticalStart,
+					VerticalEnd,
+					TraceTypeQuery3,
+					false,
+					ActorsToIgnore,
+					EDrawDebugTrace::ForDuration,
+					HitResult,
+					true
+				);
+				if(VerticalHit==false) 
+				{
+					LastPos = HitResult.Location;
+					canVault = true;
+					break;
+				}
+				else
+				{
+					if(i==1) StartPos = HitResult.Location;
+					if(i==2) MiddlePos = HitResult.Location;
+					if(i==3) canVault = false;
+				}
+			}
+			
+		}
 	}
 }
 
