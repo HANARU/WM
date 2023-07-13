@@ -19,6 +19,7 @@ AHackableActor::AHackableActor()
 void AHackableActor::BeginPlay()
 {
 	Super::BeginPlay();
+	CollisionArea->OnComponentBeginOverlap.AddDynamic(this, &AHackableActor::OnOverlapBegin);
 }
 
 void AHackableActor::Tick(float DeltaTime)
@@ -29,5 +30,15 @@ void AHackableActor::Tick(float DeltaTime)
 
 void AHackableActor::Action_Interact()
 {
+}
+
+void AHackableActor::OnOverlapBegin(UPrimitiveComponent* selfComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	//FString ObjName = otherActor->GetName();
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, ObjName);
+	if (otherActor->IsA(AAI_EnemyBase::StaticClass()))
+	{
+		Enemy = Cast<AAI_EnemyBase>(otherActor);
+	}
 }
 

@@ -34,6 +34,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UPostProcessComponent* HackingTransition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AHackableActor* HackableActor;
 
 protected:
 	virtual void BeginPlay() override;

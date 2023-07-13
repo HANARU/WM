@@ -1,5 +1,6 @@
 #include "CCTV.h"
 #include "MyPlayer.h"
+#include "HackableActor.h"
 #include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -55,13 +56,13 @@ void ACCTV::ActivateCCTV()
 
 	APlayerController* MyPlayerController = UGameplayStatics::GetPlayerController(this, 0);
 
-	MyPlayerController->SetViewTargetWithBlend(this, 1.f);
+	MyPlayerController->SetViewTargetWithBlend(this, 0.5f);
 
 	HackingTransition->SetVisibility(true);
 
 	FTimerHandle TimerHandle;
 
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACCTV::PossessCCTV, 1.05f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACCTV::PossessCCTV, 0.55f, false);
 }
 
 void ACCTV::PossessCCTV()
@@ -83,15 +84,25 @@ void ACCTV::TrackInteractable()
 		FVector EndLocation = StartLocation + Camera->GetForwardVector() * Distance;
 
 		GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
-		if (IsValid(HitResult.GetActor()))
+		
+		auto HitActor = HitResult.GetActor();
+		if (IsValid(HitActor))
 		{
 			FString ObjName;
 			ObjName.Append("Current is ");
-			ObjName.Append(HitResult.GetActor()->GetName());
+			ObjName.Append(HitActor->GetName());
 
-			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+			if (HitActor->IsA(ACCTV::StaticClass()))
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				TrackedOtherCCTV = Cast<ACCTV>(HitActor);
+			}
+			else if (HitActor->IsA(AHackableActor::StaticClass()))
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				HackableActor = Cast<AHackableActor>(HitActor);
+			}
 
-			TrackedOtherCCTV = Cast<ACCTV>(HitResult.GetActor());
 		}
 	}
 }
@@ -127,12 +138,17 @@ void ACCTV::InteractEnd_1Sec()
 void ACCTV::InteractionSinglePress()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
+	if (IsValid(HackableActor))
+	{
+		
+		HackableActor->Action_Interact();
+	}
 }
 
 void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerController)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Back2Player"));
-	PlayerController->SetViewTargetWithBlend(SinglePlayer, 1.f);
+	PlayerController->SetViewTargetWithBlend(SinglePlayer, 0.5f);
 	HackingTransition->SetVisibility(true);
 	FTimerHandle TimerHandle;
 
@@ -143,6 +159,6 @@ void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerContro
 			GetWorld()->GetFirstPlayerController()->Possess(SinglePlayer);
 			HackingTransition->SetVisibility(false);
 			
-		}), 1.05f, false);
+		}), 0.55f, false);
 }
 

@@ -14,7 +14,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UParticleSystemComponent* FXExplosion;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class URadialForceComponent* RadialForceComponent;
 
 	virtual void Action_Interact() override;
+
+	void Explosion();
 	
 };
