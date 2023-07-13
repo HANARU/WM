@@ -25,8 +25,10 @@ public:
 public:
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	class UAC_AI_NonCombat* idleComp;
-	UPROPERTY(EditAnywhere, Category = "FSM")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FSM")
 	class UAC_AI_Combat* battComp;
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	class USceneComponent* firepoint;
 
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	bool bIsBattle;
@@ -44,12 +46,15 @@ public:
 	FVector TargetLoc;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	FVector TargetDir;
-
+	UPROPERTY(EditAnywhere, Category = "USERAI")
+	FVector SmoothDir;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	class AAIController* aicontroller; 
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn *OtherPawn);
+	UFUNCTION(BlueprintCallable)
+	void OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume);
 	UFUNCTION(BlueprintCallable)
 	void SetAttack(AMyPlayer* player);
 	UFUNCTION(BlueprintCallable)

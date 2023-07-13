@@ -4,8 +4,13 @@
 #include "AC_AI_Combat.h"
 #include "AI_EnemyBase.h"
 #include "MyPlayer.h"
-#include "AIModule/Classes/AIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "MyQuery.h"
+#include "Kismet/GameplayStatics.h"
+#include "../WM.h"
+#include "AIModule/Classes/Navigation/PathFollowingComponent.h"
+#include "AIModule/Classes/AITypes.h"
+#include "AIModule/Classes/AIController.h"
 // Sets default values for this component's properties
 UAC_AI_Combat::UAC_AI_Combat()
 {
@@ -21,7 +26,6 @@ UAC_AI_Combat::UAC_AI_Combat()
 void UAC_AI_Combat::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// ...
 	OwnerEnemy = Cast<AAI_EnemyBase>(GetOwner());
 }
@@ -31,6 +35,12 @@ void UAC_AI_Combat::BeginPlay()
 void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	SitTimer = FMath::Max(0, SitTimer - DeltaTime);
+	if (SitTimer == 0)
+	{
+		bIsSit = FMath::RandBool();
+		SitTimer = FMath::RandRange(5, 10);
+	}
 	if (OwnerEnemy && OwnerEnemy->bIsBattle)
 	{
 		switch (State)
@@ -39,13 +49,16 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 			StateAttack();
 			break;
 		case ECOMBAT::HIDDEN:
-
+			StateMoveCover();
 			break;
 		case ECOMBAT::CHASE:
 			StateChase();
 			break;
 		case ECOMBAT::HOLD:
 			StateHold();
+			break;
+		case ECOMBAT::HIDDENRUN:
+			StateMoveCoverRun();
 			break;
 		default:
 			break;
@@ -62,6 +75,7 @@ void UAC_AI_Combat::Fire()
 		QueryParams.AddIgnoredActor(OwnerEnemy);
 		FName bonename = OwnerEnemy->TargetBones[FMath::RandRange(0, OwnerEnemy->TargetBones.Num() - 1)];
 		FVector boneloc = OwnerEnemy->Target->GetMesh()->GetBoneLocation(bonename);
+		firepoint = boneloc;
 		float distance = FVector::Distance(OwnerEnemy->GetActorLocation(), boneloc);
 		float maxrand;
 		if (FMath::RandRange(0, 100) > 5)
@@ -74,18 +88,18 @@ void UAC_AI_Combat::Fire()
 		}
 		FVector randvec = FVector(FMath::FRandRange(-1., 1.), FMath::FRandRange(-1., 1.), FMath::FRandRange(-1., 1.));
 		randvec.Normalize();
-		boneloc = boneloc + randvec*maxrand - OwnerEnemy->GetActorLocation();
+		boneloc = boneloc + randvec * maxrand - OwnerEnemy->GetActorLocation();
 		boneloc.Normalize();
 		boneloc = OwnerEnemy->GetActorLocation() + boneloc * 5000;
 		//DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);
-		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->GetActorLocation(), boneloc, ECC_GameTraceChannel6, QueryParams);
-		DrawDebugLine(GetWorld(), OwnerEnemy->GetActorLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
+		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->firepoint->GetComponentLocation(), boneloc, ECC_GameTraceChannel6, QueryParams);
+		DrawDebugLine(GetWorld(), OwnerEnemy->firepoint->GetComponentLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
 		if (HitResult.bBlockingHit)
 		{
 			AMyPlayer* player = Cast<AMyPlayer>(HitResult.GetActor());
 			if (player)
 			{
-				count++;	
+				count++;
 				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 50, 12, FColor::Red, false, 1);
 				//hit
 			}
@@ -97,6 +111,25 @@ void UAC_AI_Combat::Fire()
 void UAC_AI_Combat::StateAttack()
 {
 	OwnerEnemy->SeeingTimer -= GetWorld()->DeltaRealTimeSeconds;
+	CoverTimer -= GetWorld()->DeltaRealTimeSeconds;
+	if (CoverTimer <= 0)
+	{
+		if (FMath::RandBool())
+		{
+			if (FindAndMoveCover())
+			{
+				if (FMath::RandBool())
+				{
+					StateChange(ECOMBAT::HIDDEN);
+				}
+				else
+				{
+					StateChange(ECOMBAT::HIDDENRUN);
+				}
+			}
+		}
+		CoverTimer = FMath::RandRange(3, 7);
+	}
 	if (OwnerEnemy->SeeingTimer <= 0)
 	{
 		EPathFollowingRequestResult::Type result;
@@ -117,7 +150,7 @@ void UAC_AI_Combat::StateAttack()
 	}
 	else
 	{
-		if(OwnerEnemy->SeeingTimer >= 1 - GetWorld()->DeltaRealTimeSeconds || OwnerEnemy->SeeingTimer <= 0)
+		if (OwnerEnemy->SeeingTimer >= 1 - GetWorld()->DeltaRealTimeSeconds || OwnerEnemy->SeeingTimer <= 0)
 		{
 			if (OwnerEnemy->TargetLoc != FVector::ZeroVector)
 			{
@@ -131,7 +164,6 @@ void UAC_AI_Combat::StateAttack()
 		Fire();
 	}
 }
-
 void UAC_AI_Combat::StateChase()
 {
 	if (OwnerEnemy->GetCharacterMovement()->Velocity == FVector::ZeroVector)
@@ -144,7 +176,6 @@ void UAC_AI_Combat::StateChase()
 		StateTimer = FMath::RandRange(3, 7);
 	}
 }
-
 void UAC_AI_Combat::StateHold()
 {
 	StateTimer = FMath::Max(0, StateTimer - GetWorld()->DeltaRealTimeSeconds);
@@ -154,8 +185,92 @@ void UAC_AI_Combat::StateHold()
 		OwnerEnemy->TargetDir = FVector::ZeroVector;
 		OwnerEnemy->TargetLoc = FVector::ZeroVector;
 		OwnerEnemy->bIsBattle = false;
+		OwnerEnemy->bUseControllerRotationYaw = true;
 	}
 }
+void UAC_AI_Combat::StateMoveCover()
+{
+	if (OwnerEnemy->SeeingTimer <= 0)
+	{
+		EPathFollowingRequestResult::Type result;
+		result = OwnerEnemy->aicontroller->MoveToLocation(OwnerEnemy->TargetLoc);
+		moveLoc = OwnerEnemy->TargetLoc;
+		int random = FMath::RandRange(0, 100);
+		if (result == EPathFollowingRequestResult::Failed && random > courage)
+		{
+			StateChange(ECOMBAT::HOLD);
+			StateTimer = FMath::RandRange(3, 7);
+		}
+		else
+		{
+			StateChange(ECOMBAT::CHASE);
+			OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 100;
+		}
+		OwnerEnemy->Target = nullptr;
+	}
+	else
+	{
+		if (OwnerEnemy->SeeingTimer >= 1 - GetWorld()->DeltaRealTimeSeconds || OwnerEnemy->SeeingTimer <= 0)
+		{
+			if (OwnerEnemy->TargetLoc != FVector::ZeroVector)
+			{
+				OwnerEnemy->TargetDir = OwnerEnemy->Target->GetActorLocation() - OwnerEnemy->TargetLoc;
+				OwnerEnemy->TargetDir.Normalize();
+			}
+			OwnerEnemy->TargetLoc = OwnerEnemy->Target->GetActorLocation();
+		}
+		OwnerEnemy->SetActorRotation(FRotator(0, (OwnerEnemy->Target->GetActorLocation() - OwnerEnemy->GetActorLocation()).Rotation().Yaw, 0));
+		FireTimer = FMath::Max(0, FireTimer - GetWorld()->DeltaRealTimeSeconds);
+		Fire();
+	}
+	PRINT_LOG(TEXT("%d"), OwnerEnemy->aicontroller->GetMoveStatus());
+	if (OwnerEnemy->aicontroller->GetMoveStatus() == EPathFollowingStatus::Idle)
+	{
+		PRINT_LOG(TEXT("CoverFinish"));
+		StateChange(ECOMBAT::ATTACK);
+	}
+}
+
+void UAC_AI_Combat::StateMoveCoverRun()
+{
+	if (OwnerEnemy->aicontroller->GetMoveStatus() == EPathFollowingStatus::Idle)
+	{
+		PRINT_LOG(TEXT("RUNEnd"));
+		OwnerEnemy->bUseControllerRotationYaw = false;
+		bIsSit = true;
+		SitTimer = 4;
+		StateChange(ECOMBAT::ATTACK);
+	}
+}
+
+bool UAC_AI_Combat::FindAndMoveCover()
+{
+	AMyQuery* getquery = Cast<AMyQuery>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyQuery::StaticClass()));
+	if (!getquery) return false;
+	TArray<FVector> getarray = getquery->coverArray;
+	if (getarray.IsEmpty()) return false;
+
+	int i = 0;
+	while (i < getarray.Num())
+	{
+		FVector vecs = getarray[i];
+		if ((OwnerEnemy->GetActorLocation() - vecs).Size() > 1000)
+			getarray.RemoveAt(i);
+		else
+			i++;
+	}
+	if (getarray.IsEmpty()) return false;
+
+	FVector getv = getarray[FMath::RandRange(0, getarray.Num() - 1)];
+	DrawDebugSphere(GetWorld(), getv, 70.f, 6, FColor::Emerald, false, 5);
+	EPathFollowingRequestResult::Type result;
+	result = OwnerEnemy->aicontroller->MoveToLocation(getv);
+	if (result == EPathFollowingRequestResult::Failed)
+		return false;
+
+	return true;
+}
+
 
 void UAC_AI_Combat::StateChange(ECOMBAT ChageState)
 {
@@ -166,6 +281,13 @@ void UAC_AI_Combat::StateChange(ECOMBAT ChageState)
 	case ECOMBAT::ATTACK:
 		break;
 	case ECOMBAT::HIDDEN:
+		OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = FMath::RandRange(100, 300);
+		break;
+	case ECOMBAT::HIDDENRUN:
+		OwnerEnemy->bUseControllerRotationYaw = true;
+		bIsSit = false;
+		OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 400;
+		PRINT_LOG(TEXT("RUNStart"));
 		break;
 	case ECOMBAT::CHASE:
 		OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 100;
@@ -176,3 +298,4 @@ void UAC_AI_Combat::StateChange(ECOMBAT ChageState)
 		break;
 	}
 }
+

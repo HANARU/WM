@@ -46,13 +46,57 @@ void UAC_AI_NonCombat::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 void UAC_AI_NonCombat::SetRandomPoint()
 {
 	if (pointArray.IsEmpty()) return;
-	int randomint = FMath::RandRange(0, pointArray.Num() - 1);
-	AActor* temppoint = currentPoint;
-	currentPoint = pointArray[randomint];
-	FVector loc = currentPoint->GetActorLocation();
-	if (OwnerEnemy->aicontroller)
-	{;
-		OwnerEnemy->aicontroller->MoveToLocation(loc);
+	if (currentPoint == nullptr)
+	{
+		int randomint = FMath::RandRange(0, pointArray.Num() - 1);
+		AActor* temppoint = currentPoint;
+		currentPoint = pointArray[randomint];
+		FVector loc = currentPoint->GetActorLocation();
+		if (OwnerEnemy->aicontroller)
+		{
+			;
+			OwnerEnemy->aicontroller->MoveToLocation(loc);
+		}
+	}
+	else
+	{
+		bool randbool = FMath::RandBool();
+		if (randbool)
+		{
+			int randomint = FMath::RandRange(0, pointArray.Num() - 1);
+			AActor* temppoint = currentPoint;
+			currentPoint = pointArray[randomint];
+			FVector loc = currentPoint->GetActorLocation();
+			if (OwnerEnemy->aicontroller)
+			{
+				;
+				OwnerEnemy->aicontroller->MoveToLocation(loc);
+			}
+		}
+		else
+		{
+			FVector loc = OwnerEnemy->GetActorLocation();
+			if (OwnerEnemy->aicontroller)
+			{
+				loc += FVector(FMath::RandRange(0, 100), FMath::RandRange(0, 100), 0);
+				EPathFollowingRequestResult::Type result = OwnerEnemy->aicontroller->MoveToLocation(loc);
+				if (result == EPathFollowingRequestResult::Failed)
+				{
+					int randomint = FMath::RandRange(0, pointArray.Num() - 1);
+					AActor* temppoint = currentPoint;
+					currentPoint = pointArray[randomint];
+					loc = currentPoint->GetActorLocation();
+					if (OwnerEnemy->aicontroller)
+					{
+						OwnerEnemy->aicontroller->MoveToLocation(loc);
+					}
+				}
+				else
+				{
+					currentPoint = nullptr;
+				}
+			}
+		}
 	}
 }
 

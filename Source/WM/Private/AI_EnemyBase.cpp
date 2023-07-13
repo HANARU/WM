@@ -19,10 +19,10 @@ AAI_EnemyBase::AAI_EnemyBase()
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> tempSkel(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/SKM_Quinn.SKM_Quinn'"));
 	AutoPossessAI = EAutoPossessAI::Disabled;
-	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
-	PawnSensing->SetPeripheralVisionAngle(60);
 	idleComp = CreateDefaultSubobject<UAC_AI_NonCombat>(TEXT("ACNonCombat"));
 	battComp = CreateDefaultSubobject<UAC_AI_Combat>(TEXT("ACCombat"));
+	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
+	PawnSensing->SetPeripheralVisionAngle(60);
 	GetCharacterMovement()->MaxWalkSpeed = 200;
 
 	if (tempSkel.Succeeded())
@@ -41,11 +41,25 @@ void AAI_EnemyBase::PostInitializeComponents()
 void AAI_EnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
+	SmoothDir = GetActorForwardVector();
 	idleComp->OwnerEnemy = this;
 	battComp->OwnerEnemy = this;
 	PawnSensing->OnSeePawn.AddDynamic(this, &AAI_EnemyBase::OnSeePawn);
+	PawnSensing->OnHearNoise.AddDynamic(this, &AAI_EnemyBase::OnHearNoise);
 	aicontroller = GetWorld()->SpawnActor<AAIController>(AAIController::StaticClass(), GetActorTransform());
 	aicontroller->Possess(this);
+
+	for (UActorComponent* Component : GetComponents())
+	{
+		if (Component->GetName() == "Fpoint")
+		{
+			USceneComponent* Scene = Cast<USceneComponent>(Component);
+			if (Scene)
+			{
+				firepoint = Scene;
+			}
+		}
+	}
 }
 void AAI_EnemyBase::Tick(float DeltaTime)
 {
@@ -107,9 +121,23 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 			result += HitResult.bBlockingHit * 30;
 			TargetBones.Add(FName("ball_l"));
 		}
-		if (result > 100)
+		if (result > 100 - bIsBattle * 80)
 		{
 			SetAttack(player);
+		}
+	}
+}
+
+void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume)
+{
+	if (Volume > .5)
+	{
+		TargetDir = Location - GetActorLocation();
+		TargetDir.Normalize();
+		if (!bIsBattle)
+		{
+			aicontroller->MoveToLocation(Location);
+			SetActorRotation(TargetDir.Rotation());
 		}
 	}
 }
@@ -118,10 +146,25 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 {
 	Target = player;
 	SeeingTimer = 1.0;
+	if (battComp->State == ECOMBAT::HIDDEN || battComp->State == ECOMBAT::HIDDENRUN) return;
+	bUseControllerRotationYaw = false;
+	aicontroller->StopMovement();
 	if (!bIsBattle)
 	{
+		battComp->FindAndMoveCover();
+		if (FMath::RandBool())
+		{
+			battComp->StateChange(ECOMBAT::HIDDEN);
+		}
+		else
+		{
+			battComp->StateChange(ECOMBAT::HIDDENRUN);
+		}
+		battComp->CoverTimer = 3;
 		bIsBattle = true;
 	}
-	aicontroller->StopMovement();
-	battComp->StateChange(ECOMBAT::ATTACK);
+	else
+	{
+		battComp->StateChange(ECOMBAT::ATTACK);
+	}
 }

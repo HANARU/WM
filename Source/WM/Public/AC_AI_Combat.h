@@ -11,10 +11,10 @@ enum class ECOMBAT : uint8
 {
 	ATTACK,
 	HIDDEN,
+	HIDDENRUN,
 	CHASE,
 	HOLD
 };
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class WM_API UAC_AI_Combat : public UActorComponent
 {
@@ -34,11 +34,15 @@ public:
 
 public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	bool bIsMove;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float FireTimer;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float FireTimerMax = .5;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float StateTimer;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	float CoverTimer;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class AAI_EnemyBase* OwnerEnemy;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
@@ -53,6 +57,12 @@ public:
 	FVector moveLoc;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	int count = 0;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	bool bIsSit;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	float SitTimer;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	FVector firepoint;
 public:
 	UFUNCTION(BlueprintCallable)
 	void Fire();
@@ -64,4 +74,10 @@ public:
 	void StateHold();
 	UFUNCTION()
 	void StateChange(ECOMBAT ChageState);
+	UFUNCTION()
+	void StateMoveCover();
+	UFUNCTION()
+	void StateMoveCoverRun();
+	UFUNCTION()
+	bool FindAndMoveCover();
 };
