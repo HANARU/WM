@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-
 #include "InputActionValue.h"
+#include <../Plugins/Animation/MotionWarping/Source/MotionWarping/Public/MotionWarpingComponent.h>
 #include "MyPlayer.generated.h"
 
 UCLASS()
@@ -26,9 +26,9 @@ public:
 	class UArrowComponent* Left45DetectArrow;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Arrow)
 	class UArrowComponent* Right45DetectArrow;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
+	class UMotionWarpingComponent* MotionWraping;
 	
-
 //-----------------------Enhanced Input System--------------------//
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -52,6 +52,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* VaultAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* RunAction;
 	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* MouseLeftClick;
 
@@ -67,12 +69,20 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+//--------------------이동(Movement) 함수 및 변수----------------//
 public:
 	void Move(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
 	void CoverCheck(const FInputActionValue& value);
 	void Vault(const FInputActionValue& value);
+	void Run(const FInputActionValue& value);
 
+	float Speed = 0.f;
+	float WalkSpeed = 300.f;
+	float RunSpeed = 600.f;
+	
+	class UAnimMontage* ClimbMontageToPlay;
+ 
 
 //--------------------해킹 등 상호작용 함수 및 변수----------------//
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -90,7 +100,7 @@ public:
 		bool bProcessEvent = false;
 
 	UFUNCTION(BlueprintCallable)
-		void InteractStart_1Sec();
+		float InteractStart_1Sec();
 
 	UFUNCTION(BlueprintCallable)
 		void InteractEnd_1Sec();
@@ -148,17 +158,29 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
 	float VaultLimit = 150;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
-	float LineDelta = 30;
+	float LineDelta = 50;
 
 	// 뛰어넘을 수 있는가?
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
 	bool canVault = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
+	bool canClimb = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
+	FVector WallPos;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
 	FVector StartPos;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
 	FVector MiddlePos;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
 	FVector LastPos;
 
 //-----------------------교전을 위한 함수, 변수-------------------//
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Gun")
+		bool isZooming = false;
+
+	
 	UFUNCTION(BlueprintCallable)
 		void Shoot();
 	UFUNCTION(BlueprintCallable)

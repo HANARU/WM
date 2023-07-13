@@ -17,6 +17,8 @@
 #include <Components/ArrowComponent.h>
 #include <Kismet/KismetMathLibrary.h>
 #include "Math/Quat.h"
+#include <../Plugins/Animation/MotionWarping/Source/MotionWarping/Public/MotionWarpingComponent.h>
+#include <Animation/AnimMontage.h>
 
 
 
@@ -57,10 +59,20 @@ AMyPlayer::AMyPlayer()
 	Right45DetectArrow->SetRelativeRotation(FRotator(0, 45, 0));
 	Right45DetectArrow->SetupAttachment(GetCapsuleComponent());
 
+	MotionWraping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWraping"));
 
 
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
+
+
+	//Montage 
+	ConstructorHelpers::FObjectFinder<UAnimMontage> TempMontage(TEXT("/Script/Engine.AnimMontage'/Game/4_SK/Animations/Sprint_To_Wall_Climb__1__Montage.Sprint_To_Wall_Climb__1__Montage'"));
+
+	if (TempMontage.Succeeded())
+	{
+		ClimbMontageToPlay = TempMontage.Object;
+	}
 }
 
 void AMyPlayer::BeginPlay()
@@ -75,11 +87,15 @@ void AMyPlayer::BeginPlay()
 			Subsystem->AddMappingContext(PlayerMappingContext, 0);
 		}
 	}
+
 }
 
 void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// 달리기 <-> 걷기 전환시 디테일 
+	GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(GetCharacterMovement()->MaxWalkSpeed, Speed, 5*DeltaTime);
 
 	TrackInteractable();
 	if(isCovering) Covering();
@@ -100,6 +116,10 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	EnhancedInputComponent->BindAction(CoverAction, ETriggerEvent::Triggered, this, &AMyPlayer::CoverCheck);
 
 	EnhancedInputComponent->BindAction(VaultAction, ETriggerEvent::Triggered, this, &AMyPlayer::Vault);
+
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AMyPlayer::Run);
+
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AMyPlayer::Run);
 }
 
 void AMyPlayer::Move(const FInputActionValue& value)
@@ -223,6 +243,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 	FVector End = Start + GetCapsuleComponent()->GetForwardVector() * DistanceToObject;
 	TArray<AActor*> ActorsToIgnore;
 	FHitResult HitResult;
+	FHitResult HitResult2;
 	
 	bool LineHit = UKismetSystemLibrary::LineTraceSingle(
 		this,
@@ -240,11 +261,14 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 	{
 		// 성공하면 Location을 확인해야하고, 
 		// 물체의 높이를 확인해야 한다. -> Vault 범위를 위해
+		WallPos = HitResult.Location;
 		FVector BoxOrigin;
 		FVector BoxExtent;
 		HitResult.GetActor()->GetActorBounds(false,BoxOrigin, BoxExtent);
 		float SubHeight = BoxExtent.Z - HitResult.Location.Z;
-
+		UE_LOG(LogTemp, Warning,TEXT("%f"), SubHeight);
+		UE_LOG(LogTemp, Warning,TEXT("BOX %f"), BoxExtent.Z);
+		UE_LOG(LogTemp, Warning,TEXT("HIT %f"), HitResult.Location.Z);
 		if (SubHeight < VaultLimit)
 		{// 적당한 Vault 높이라면 
 		// Vertical LineTrace를 호출한다. 
@@ -260,29 +284,60 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 					false,
 					ActorsToIgnore,
 					EDrawDebugTrace::ForDuration,
-					HitResult,
+					HitResult2,
 					true
 				);
 				if(VerticalHit==false) 
 				{
-					LastPos = HitResult.Location;
+					LastPos = HitResult2.Location;
 					canVault = true;
+					canClimb = false;
 					break;
 				}
 				else
 				{
-					if(i==1) StartPos = HitResult.Location;
-					if(i==2) MiddlePos = HitResult.Location;
-					if(i==3) canVault = false;
+					if(i==1) StartPos = HitResult2.Location;
+					if(i==2) MiddlePos = HitResult2.Location;
+					if(i==3) {
+						canVault = false;
+						canClimb = true;
+						LastPos = HitResult2.Location;
+					}
 				}
 			}
-			
+		//Motion Warping(Mantling) 애니메이션을 호출한다. 
+		
+		/*GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		this->SetActorEnableCollision(false);
+		MotionWraping->AddOrUpdateWarpTargetFromLocation(TEXT("HangingPos"), FVector(GetActorLocation().X, GetActorLocation().Y, StartPos.Z));
+
+		PlayAnimMontage(ClimbMontageToPlay);
+		
+		this->SetActorEnableCollision(true);
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);*/
+
 		}
+		else
+		{
+			canClimb = false;
+		}
+	}
+	else
+	{
+		canClimb= false;
+		canVault = false;
 	}
 }
 
 
-void AMyPlayer::InteractStart_1Sec()
+void AMyPlayer::Run(const FInputActionValue& value)
+{
+	if(Speed > WalkSpeed) Speed = WalkSpeed;
+	else Speed = RunSpeed;
+
+}
+
+float AMyPlayer::InteractStart_1Sec()
 {
 	FString InteractionTimeString = FString::SanitizeFloat(InteractionTime);
 	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, TEXT("InteractionStart"));
@@ -297,13 +352,15 @@ void AMyPlayer::InteractStart_1Sec()
 		}
 		else
 		{
-			return;
+			return InteractionTime;
 		}
 	}
 	else
 	{
 		InteractionTime = InteractionTime + GetWorld()->GetDeltaSeconds();
 	}
+
+	return InteractionTime;
 }
 
 void AMyPlayer::InteractEnd_1Sec()
@@ -381,6 +438,7 @@ void AMyPlayer::Shoot()
 void AMyPlayer::ZoomIn()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Zoom"));
+	isZooming = true;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
 
 
@@ -388,6 +446,7 @@ void AMyPlayer::ZoomIn()
 
 void AMyPlayer::ZoomOut()
 {
+	isZooming = false;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
 }
 
