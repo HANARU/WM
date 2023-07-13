@@ -77,7 +77,7 @@ public:
 	void Vault(const FInputActionValue& value);
 	void Run(const FInputActionValue& value);
 
-	float Speed = 0.f;
+	float Speed = 300.f;
 	float WalkSpeed = 300.f;
 	float RunSpeed = 600.f;
 	
