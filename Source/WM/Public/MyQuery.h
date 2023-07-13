@@ -6,11 +6,22 @@
 #include "GameFramework/Actor.h"
 #include "MyQuery.generated.h"
 
+USTRUCT(BlueprintType)
+struct FHideLoc
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	AActor* owner = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector Loc = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsWall = false;
+};
+
 UCLASS()
 class WM_API AMyQuery : public AActor
 {
 	GENERATED_BODY()
-	
 public:	
 	// Sets default values for this actor's properties
 	AMyQuery();
@@ -22,6 +33,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+public:
 	UPROPERTY(EditAnywhere, Category = "Query")
 	int width = 40;
 	UPROPERTY(EditAnywhere, Category = "Query")
@@ -29,5 +41,5 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Query")
 	float repeatTimer = 0;
 	UPROPERTY(EditAnywhere, Category = "Query")
-	TArray<FVector> coverArray;
+	TArray<FHideLoc> coverArray;
 };

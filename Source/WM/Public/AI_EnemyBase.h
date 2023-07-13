@@ -30,7 +30,8 @@ public:
 	class UAC_AI_Combat* battComp;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	class USceneComponent* firepoint;
-
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	bool bIsdie;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	bool bIsBattle;
 	//UPROPERTY(EditAnywhere, Category = "Collision")
@@ -50,7 +51,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	FVector SmoothDir;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
-	class AAIController* aicontroller; 
+	class AAIController* aicontroller;
+	UPROPERTY(EditAnywhere, Category = "USERAI")
+	class UAI_EnemyAnimInstance* animins; 
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn *OtherPawn);
@@ -58,6 +61,8 @@ public:
 	void OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume);
 	UFUNCTION(BlueprintCallable)
 	void SetAttack(AMyPlayer* player);
+	UFUNCTION(BlueprintCallable)
+	void SetDie();
 	UFUNCTION(BlueprintCallable)
 	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
 };

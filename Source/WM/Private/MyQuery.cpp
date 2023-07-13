@@ -7,10 +7,11 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "AI_EnemyBase.h"
 #include "../WM.h"
+
 // Sets default values
 AMyQuery::AMyQuery()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -19,7 +20,7 @@ AMyQuery::AMyQuery()
 void AMyQuery::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -77,12 +78,20 @@ void AMyQuery::Tick(float DeltaTime)
 								ECC_GameTraceChannel12,
 								QueryParams
 							);
-							hitsecinfo.GetActor();
+							//hitsecinfo.GetActor();
 							//PRINT_LOG(hitsecinfo.GetActor()->GetName());
 							if (hitsecinfo.GetActor() != player && bSecHit && !hitsecinfo.GetActor()->IsA(AAI_EnemyBase::StaticClass()))
 							{
+								FVector origin;
+								FVector boxextent;
+								HitActor->GetActorBounds(false, origin, boxextent);
+								bool bIsWall = (boxextent.Z > 100);
+								PRINT_LOG(TEXT("%f"), boxextent.Z);
 								DrawDebugSphere(GetWorld(), normalloc, 30.f, 0, FColor::Black, false, 1);
-								coverArray.Add(normalloc);
+								FHideLoc hideloc;
+								hideloc.Loc = normalloc;
+								hideloc.bIsWall = bIsWall;
+								coverArray.Add(hideloc);
 							}
 						}
 					}
@@ -91,5 +100,4 @@ void AMyQuery::Tick(float DeltaTime)
 		repeatTimer = 1;
 	}
 }
-
 

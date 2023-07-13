@@ -36,4 +36,7 @@ public :
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	float targetaimDir;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
-	class AAI_EnemyBase* Owner;};
+	class AAI_EnemyBase* Owner;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
+	class UAnimMontage* fireMontage;
+};

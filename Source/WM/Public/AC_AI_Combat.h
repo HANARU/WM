@@ -36,6 +36,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	bool bIsMove;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	bool bIsWall;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float FireTimer;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float FireTimerMax = .5;

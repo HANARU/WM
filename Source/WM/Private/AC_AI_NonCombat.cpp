@@ -30,6 +30,7 @@ void UAC_AI_NonCombat::BeginPlay()
 // Called every frame
 void UAC_AI_NonCombat::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	if (OwnerEnemy->bIsdie) return;
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (OwnerEnemy && !OwnerEnemy->bIsBattle)

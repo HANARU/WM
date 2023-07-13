@@ -10,7 +10,8 @@
 #include "AC_AI_NonCombat.h"
 #include "AC_AI_Combat.h"
 #include "../WM.h"
-
+#include "Components/CapsuleComponent.h"
+#include "AI_EnemyAnimInstance.h"
 // Sets default values
 AAI_EnemyBase::AAI_EnemyBase()
 {
@@ -48,7 +49,7 @@ void AAI_EnemyBase::BeginPlay()
 	PawnSensing->OnHearNoise.AddDynamic(this, &AAI_EnemyBase::OnHearNoise);
 	aicontroller = GetWorld()->SpawnActor<AAIController>(AAIController::StaticClass(), GetActorTransform());
 	aicontroller->Possess(this);
-
+	animins = Cast<UAI_EnemyAnimInstance> (GetMesh()->GetAnimInstance());
 	for (UActorComponent* Component : GetComponents())
 	{
 		if (Component->GetName() == "Fpoint")
@@ -79,6 +80,7 @@ FHitResult AAI_EnemyBase::LineTraceSocket(FName SocketName, ACharacter* TargetCh
 
 void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 {
+	if (bIsdie) return;
 	AMyPlayer* player = Cast<AMyPlayer>(OtherPawn);
 	if (player)
 	{
@@ -130,6 +132,7 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 
 void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume)
 {
+	if (bIsdie) return;
 	if (Volume > .5)
 	{
 		TargetDir = Location - GetActorLocation();
@@ -167,4 +170,11 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 	{
 		battComp->StateChange(ECOMBAT::ATTACK);
 	}
+}
+
+void AAI_EnemyBase::SetDie()
+{
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	bIsdie = true;
 }
