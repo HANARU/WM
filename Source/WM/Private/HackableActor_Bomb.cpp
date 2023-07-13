@@ -13,7 +13,7 @@ AHackableActor_Bomb::AHackableActor_Bomb()
 	FXExplosion->SetAutoActivate(false);
 
 	ExplosionAffectArea = CreateDefaultSubobject<USphereComponent>(TEXT("ExplosionArea"));
-	ExplosionAffectArea->SetupAttachment(RootComponent);
+	ExplosionAffectArea->SetupAttachment(CollisionArea);
 	ExplosionAffectArea->SetSphereRadius(128);
 
 	RadialForceComponent = CreateDefaultSubobject<URadialForceComponent>(TEXT("Force"));
