@@ -13,6 +13,19 @@ ACCTV::ACCTV()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	BasePosition = CreateDefaultSubobject<USceneComponent>(TEXT("Base"));
+	RootComponent = BasePosition;
+
+	CameraSupport = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CameraSupport"));
+	CameraSupport->SetupAttachment(RootComponent);
+	CameraSupport->SetRelativeRotation(FRotator(0, -90, 0));
+	CameraSupport->bOwnerNoSee = true;
+
+	CameraBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CameraBody"));
+	CameraBody->SetupAttachment(CameraSupport);
+	CameraBody->SetRelativeLocation(FVector(0.001, 18.438, 2.657));
+	CameraBody->bOwnerNoSee = true;
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 0;
@@ -28,6 +41,18 @@ ACCTV::ACCTV()
 
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> SupportMesh(TEXT("/Script/Engine.StaticMesh'/Game/ModernCity/Meshes/SM_MSecurityCamera_B_Support.SM_MSecurityCamera_B_Support'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> BodyMesh(TEXT("/Script/Engine.StaticMesh'/Game/ModernCity/Meshes/SM_MSecurityCamera_B.SM_MSecurityCamera_B'"));
+
+	if (SupportMesh.Succeeded())
+	{
+		CameraSupport->SetStaticMesh(SupportMesh.Object);
+	}
+	if (BodyMesh.Succeeded())
+	{
+		CameraBody->SetStaticMesh(BodyMesh.Object);
+	}
 }
 
 void ACCTV::BeginPlay()

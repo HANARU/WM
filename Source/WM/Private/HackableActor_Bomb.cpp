@@ -12,6 +12,10 @@ AHackableActor_Bomb::AHackableActor_Bomb()
 	FXExplosion->SetupAttachment(CollisionArea);
 	FXExplosion->SetAutoActivate(false);
 
+	ExplosionAffectArea = CreateDefaultSubobject<USphereComponent>(TEXT("ExplosionArea"));
+	ExplosionAffectArea->SetupAttachment(RootComponent);
+	ExplosionAffectArea->SetSphereRadius(128);
+
 	RadialForceComponent = CreateDefaultSubobject<URadialForceComponent>(TEXT("Force"));
 	RadialForceComponent->Radius = 200;
 	RadialForceComponent->ImpulseStrength = 10000.f;
@@ -25,7 +29,7 @@ AHackableActor_Bomb::AHackableActor_Bomb()
 
 void AHackableActor_Bomb::Action_Interact()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Explosion"));
+	
 
 	FVector ExplosionLocation = GetActorLocation();
 
@@ -38,9 +42,10 @@ void AHackableActor_Bomb::Action_Interact()
 
 	GetWorldTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this]()->void
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Explosion"));
 			Destroy();
-
 		}), 2.f, false);
+	
 }
 
 void AHackableActor_Bomb::Explosion()
@@ -48,6 +53,28 @@ void AHackableActor_Bomb::Explosion()
 	RadialForceComponent->FireImpulse();
 	float ImpulseValue = RadialForceComponent->ImpulseStrength;
 	FVector ImpulseVector = FVector(ImpulseValue, ImpulseValue, ImpulseValue);
-	Enemy->GetMesh()->SetSimulatePhysics(true);
-	Enemy->GetMesh()->AddImpulse(ImpulseVector);
+	if (IsValid(Enemy))
+	{
+		Enemy->GetMesh()->SetSimulatePhysics(true);
+		Enemy->GetMesh()->AddImpulse(ImpulseVector);
+	}
+}
+
+void AHackableActor_Bomb::BeginPlay()
+{
+	ExplosionAffectArea->OnComponentBeginOverlap.AddDynamic(this, &AHackableActor_Bomb::OnOverlapBegin);
+}
+
+void AHackableActor_Bomb::OnOverlapBegin(UPrimitiveComponent* selfComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	FString ObjName = otherActor->GetName();
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, ObjName);
+	if (otherActor->IsA(AAI_EnemyBase::StaticClass()))
+	{
+		Enemy = Cast<AAI_EnemyBase>(otherActor);
+	}
+	else
+	{
+		return;
+	}
 }

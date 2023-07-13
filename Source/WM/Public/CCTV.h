@@ -13,11 +13,18 @@ public:
 	ACCTV();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class USceneComponent* BasePosition;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class USpringArmComponent* SpringArm;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UCameraComponent* Camera;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class USphereComponent* CollisionArea;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UStaticMeshComponent* CameraSupport;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UStaticMeshComponent* CameraBody;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AMyPlayer* Player;
