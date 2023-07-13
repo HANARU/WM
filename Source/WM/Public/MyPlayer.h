@@ -72,10 +72,14 @@ public:
 //--------------------이동(Movement) 함수 및 변수----------------//
 public:
 	void Move(const FInputActionValue& value);
+	void MoveStop(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
 	void CoverCheck(const FInputActionValue& value);
 	void Vault(const FInputActionValue& value);
 	void Run(const FInputActionValue& value);
+	
+	UFUNCTION(BlueprintImplementableEvent, Category="Move")
+	void PlayStopMontage();
 
 	float Speed = 300.f;
 	float WalkSpeed = 300.f;
@@ -93,6 +97,15 @@ public:
 		float Distance = 2000;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class ACCTV* CCTV;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		int32 HackableCount = 3;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		int32 HackableMaxCount = 3;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		float FillHackableCountTime;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		float CurrentTime; 
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UPostProcessComponent* HackingTransition;
@@ -111,9 +124,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void TrackInteractable();
 
+	UFUNCTION(BlueprintCallable)
+		void FillHackableCount(float DeltaTime);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AHackableActor* HackableActor;
 
+		
 
 //-----------------------은폐 관련 함수 및 변수-------------------//
 public:
@@ -125,12 +142,14 @@ public:
 	// 충돌체의 크기
 	float DistanceToCoverObject = 200;
 	// 엄폐를 하는중인가?
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cover")
 	bool isCovering = false;
 	// 엄폐중 얻는 Object의 Normal Vector
 	FVector CoverObjectNormal;
 	FVector CoverObjectOrthogonal;
 
 	// 엄폐중인가?
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cover")
 	bool nowCovering = false;
 	bool leftDetect = false;
 	bool rightDetect =false;
@@ -175,6 +194,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
 	FVector LastPos;
 
+	UFUNCTION(BlueprintImplementableEvent, Category="Warp")
+	void VaultMotionWarp();
+
 //-----------------------교전을 위한 함수, 변수-------------------//
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Gun")
@@ -187,6 +209,8 @@ public:
 		void ZoomIn();
 	UFUNCTION(BlueprintCallable)
 		void ZoomOut();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Gun")
+		void PlayShootMontage();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class USceneComponent* ShootStartPoint;

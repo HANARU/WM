@@ -19,6 +19,7 @@
 #include "Math/Quat.h"
 #include <../Plugins/Animation/MotionWarping/Source/MotionWarping/Public/MotionWarpingComponent.h>
 #include <Animation/AnimMontage.h>
+#include <Kismet/GameplayStatics.h>
 
 
 
@@ -101,6 +102,11 @@ void AMyPlayer::Tick(float DeltaTime)
 	if(isCovering) Covering();
 	// 엄폐 시 Trace Line Collision을 만들어준다.
 	if(nowCovering) CoverMovement();
+
+	//<------------Control HackableCount--------------->//
+	//FillHackableCount(DeltaTime);
+
+
 }
 
 void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -110,6 +116,8 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMyPlayer::Move);
+
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AMyPlayer::MoveStop);
 
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyPlayer::Look);
 
@@ -221,6 +229,11 @@ void AMyPlayer::Move(const FInputActionValue& value)
 	}
 }
 
+void AMyPlayer::MoveStop(const FInputActionValue& value)
+{
+	PlayStopMontage();
+}
+
 void AMyPlayer::Look(const FInputActionValue& value)
 {
 	FVector2D LookAxisVector = value.Get<FVector2D>();
@@ -235,7 +248,6 @@ void AMyPlayer::Look(const FInputActionValue& value)
 
 void AMyPlayer::Vault(const FInputActionValue& value)
 {
-	// Motion Warp 정의
 
 	// LineTrace 발사
 	// 입력 값
@@ -272,6 +284,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 		if (SubHeight < VaultLimit)
 		{// 적당한 Vault 높이라면 
 		// Vertical LineTrace를 호출한다. 
+			DisableInput(GEngine->GetFirstLocalPlayerController(GetWorld()));	
 			for(int i = 1; i<4; i++)
 			{
 				FVector VerticalStart = HitResult.Location + FVector(0, 0, VaultLimit) + GetActorForwardVector() * LineDelta * i;
@@ -305,6 +318,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 					}
 				}
 			}
+			VaultMotionWarp();
 		//Motion Warping(Mantling) 애니메이션을 호출한다. 
 		
 		/*GetCharacterMovement()->SetMovementMode(MOVE_Flying);
@@ -316,19 +330,23 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 		this->SetActorEnableCollision(true);
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);*/
 
+
 		}
 		else
 		{
 			canClimb = false;
+			//EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 		}
 	}
 	else
 	{
 		canClimb= false;
 		canVault = false;
+		//EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	}
-}
 
+	//EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+}
 
 void AMyPlayer::Run(const FInputActionValue& value)
 {
@@ -375,6 +393,18 @@ void AMyPlayer::InteractionSinglePress()
 	if (IsValid(HackableActor))
 	{
 		HackableActor->Action_Interact();
+		HackableCount--;
+	}
+}
+
+void AMyPlayer::FillHackableCount(float DeltaTime)
+{
+	CurrentTime += DeltaTime;
+
+	if (CurrentTime > FillHackableCountTime && HackableCount<HackableMaxCount)
+	{
+		HackableCount++;
+		CurrentTime = 0;
 	}
 }
 
@@ -433,6 +463,8 @@ void AMyPlayer::Shoot()
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
 		Enemy->SetAttack(this);
 	}
+
+	PlayShootMontage();
 }
 
 void AMyPlayer::ZoomIn()
@@ -459,8 +491,9 @@ void AMyPlayer::Covering()
 	{
 		// 가까워진 값만큼 다시 초기화
 		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
+		GetCharacterMovement()->MaxWalkSpeed = 1000;
 		AddMovementInput(HitActorOrigin - GetMesh()->GetComponentLocation());
-		
+		isCovering = true;
 	}
 	else
 	{
@@ -472,6 +505,7 @@ void AMyPlayer::Covering()
 			//Rotation이 끝난 후 Normal Vector의 Orthogonal Vector을 만들어준다. For Movement
 			CoverObjectOrthogonal = FVector::CrossProduct(CoverObjectNormal, GetMesh()->GetUpVector());
 		}
+		GetCharacterMovement()->MaxWalkSpeed = 300;
 	}
 	
 }
@@ -481,7 +515,7 @@ bool AMyPlayer::ConverLineTrace(float degree)
 	// Line Trace 입력 값
 	FVector LineTraceStart = PlayerCamera->GetComponentLocation();
 	FRotator Rot (0.f, degree, 0.f);
-	FVector RotVector = UKismetMathLibrary::Quat_RotateVector(Rot.Quaternion(), PlayerCamera->GetForwardVector()) * 500;
+	FVector RotVector = UKismetMathLibrary::Quat_RotateVector(Rot.Quaternion(), PlayerCamera->GetForwardVector()) * 800;
 	FVector LineTraceEnd = LineTraceStart + RotVector;
 	TArray<AActor*> ActorsToIgnore;
 
@@ -564,7 +598,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForOneFrame,
 		SphereHitResult,
 		true
 	);
@@ -582,7 +616,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForOneFrame,
 		SphereLeftHitResult,
 		true
 	);
@@ -600,7 +634,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForOneFrame,
 		SphereRightHitResult,
 		true
 	);
@@ -611,7 +645,6 @@ void AMyPlayer::CoverMovement()
 float AMyPlayer::GetDeltaRotate()
 {
 	FRotator CameraRotation = PlayerCamera->GetComponentRotation();
-
 	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(CameraRotation, UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal));
 
 	return Delta.Yaw;
