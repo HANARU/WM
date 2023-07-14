@@ -193,7 +193,11 @@ public:
 	FVector MiddlePos;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
 	FVector LastPos;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
+	FVector TempPos;
 
+	UFUNCTION(BlueprintImplementableEvent, Category="Warp")
+	void ClimbMotionWarp();
 	UFUNCTION(BlueprintImplementableEvent, Category="Warp")
 	void VaultMotionWarp();
 

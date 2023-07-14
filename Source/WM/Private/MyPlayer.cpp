@@ -104,7 +104,7 @@ void AMyPlayer::Tick(float DeltaTime)
 	if(nowCovering) CoverMovement();
 
 	//<------------Control HackableCount--------------->//
-	//FillHackableCount(DeltaTime);
+	FillHackableCount(DeltaTime);
 
 
 }
@@ -147,6 +147,8 @@ void AMyPlayer::Move(const FInputActionValue& value)
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
 
+
+	// 엄폐 Movement 
 	if (nowCovering)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -166,20 +168,16 @@ void AMyPlayer::Move(const FInputActionValue& value)
 			if(canGoDetect)
 			{
 				AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
-				UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
-
 			}
 			else
 			{
 				if (MovementVector.Y < 0 && leftDetect)
 				{
 					AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
-					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
 				}
 				else if (rightDetect && MovementVector.Y > 0)
 				{
 					AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
-					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
 				}
 			}
 
@@ -196,19 +194,16 @@ void AMyPlayer::Move(const FInputActionValue& value)
 			if (canGoDetect)
 			{
 				AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
-				UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
 			}
 			else {
 
 				if (MovementVector.Y > 0 && leftDetect)
 				{
 					AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
-					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
 				}
 				else if (rightDetect && MovementVector.Y < 0)
 				{
 					AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
-					UE_LOG(LogTemp, Warning, TEXT("%f"), deltaRotate);
 				}
 			}
 
@@ -222,8 +217,6 @@ void AMyPlayer::Move(const FInputActionValue& value)
 			if(deltaRotate>0) 
 			{
 				nowCovering = false;
-				UE_LOG(LogTemp, Warning, TEXT("Cover End, %f"), deltaRotate);
-
 			}
 		}
 	}
@@ -278,9 +271,6 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 		FVector BoxExtent;
 		HitResult.GetActor()->GetActorBounds(false,BoxOrigin, BoxExtent);
 		float SubHeight = BoxExtent.Z - HitResult.Location.Z;
-		UE_LOG(LogTemp, Warning,TEXT("%f"), SubHeight);
-		UE_LOG(LogTemp, Warning,TEXT("BOX %f"), BoxExtent.Z);
-		UE_LOG(LogTemp, Warning,TEXT("HIT %f"), HitResult.Location.Z);
 		if (SubHeight < VaultLimit)
 		{// 적당한 Vault 높이라면 
 		// Vertical LineTrace를 호출한다. 
@@ -302,9 +292,29 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 				);
 				if(VerticalHit==false) 
 				{
-					LastPos = HitResult2.Location;
 					canVault = true;
 					canClimb = false;
+
+					// 마지막에 찍힌 Temp Location에서 Z축으로 LineTrace를 쏜다.
+					// LineTrace와 바닥에 맞은 지점의 값을 LastPos 값에 넣어준다.
+					if (i != 1)
+					{
+						FVector LastVerticalStart = TempPos + GetCapsuleComponent()->GetForwardVector() * 80;
+						FVector LastVerticalEnd = LastVerticalStart - FVector(0, 0, 10000);
+						bool LastVerticalHit = UKismetSystemLibrary::LineTraceSingle(
+							this,
+							LastVerticalStart,
+							LastVerticalEnd,
+							TraceTypeQuery1,
+							false,
+							ActorsToIgnore,
+							EDrawDebugTrace::ForDuration,
+							HitResult2,
+							true
+						);
+
+						if(LastVerticalHit) LastPos = HitResult2.Location;
+					}
 					break;
 				}
 				else
@@ -316,9 +326,12 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 						canClimb = true;
 						LastPos = HitResult2.Location;
 					}
+					TempPos = HitResult2.Location;
 				}
 			}
-			VaultMotionWarp();
+			if(canClimb) ClimbMotionWarp();
+			else if(canVault) VaultMotionWarp();
+			else EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 		//Motion Warping(Mantling) 애니메이션을 호출한다. 
 		
 		/*GetCharacterMovement()->SetMovementMode(MOVE_Flying);
@@ -330,22 +343,17 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 		this->SetActorEnableCollision(true);
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);*/
 
-
 		}
 		else
 		{
 			canClimb = false;
-			//EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 		}
 	}
 	else
 	{
 		canClimb= false;
 		canVault = false;
-		//EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	}
-
-	//EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 }
 
 void AMyPlayer::Run(const FInputActionValue& value)
@@ -353,6 +361,18 @@ void AMyPlayer::Run(const FInputActionValue& value)
 	if(Speed > WalkSpeed) Speed = WalkSpeed;
 	else Speed = RunSpeed;
 
+}
+
+void AMyPlayer::CoverCheck(const FInputActionValue& value)
+{	
+	for (int i = 0; i < 3; i++)
+	{
+		bool RHit = ConverLineTrace(i*LineTraceDegree);
+		// 충돌체가 감지되면 LineTrace 중지
+		if (RHit) break;
+		bool LHit = ConverLineTrace(-i*LineTraceDegree);
+		if(LHit) break;
+	}
 }
 
 float AMyPlayer::InteractStart_1Sec()
@@ -427,18 +447,6 @@ void AMyPlayer::TrackInteractable()
 			CCTV = Cast<ACCTV>(HitResult.GetActor());
 			HackableActor = Cast<AHackableActor>(HitResult.GetActor());
 		}
-	}
-}
-
-void AMyPlayer::CoverCheck(const FInputActionValue& value)
-{	
-	for (int i = 0; i < 3; i++)
-	{
-		bool RHit = ConverLineTrace(i*LineTraceDegree);
-		// 충돌체가 감지되면 LineTrace 중지
-		if (RHit) break;
-		bool LHit = ConverLineTrace(-i*LineTraceDegree);
-		if(LHit) break;
 	}
 }
 
