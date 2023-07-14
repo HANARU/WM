@@ -29,23 +29,19 @@ AHackableActor_Bomb::AHackableActor_Bomb()
 
 void AHackableActor_Bomb::Action_Interact()
 {
-	
-
 	FVector ExplosionLocation = GetActorLocation();
 
-	FTimerHandle TimerHandle;
 	FXExplosion->ToggleActive();
 
 	Explosion();
-	//FString ObjName = Enemy->GetName();
-	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, ObjName);
 
+	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this]()->void
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Explosion"));
-			Destroy();
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Destroy!!"));
+			//Destroy();
+			DestroyObject();
 		}), 2.f, false);
-	
 }
 
 void AHackableActor_Bomb::Explosion()
@@ -58,6 +54,8 @@ void AHackableActor_Bomb::Explosion()
 		Enemy->GetMesh()->SetSimulatePhysics(true);
 		Enemy->GetMesh()->AddImpulse(ImpulseVector);
 	}
+
+	
 }
 
 void AHackableActor_Bomb::BeginPlay()

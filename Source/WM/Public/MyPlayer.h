@@ -102,7 +102,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		int32 HackableMaxCount = 3;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-		float FillHackableCountTime;
+		float FillHackableCountTime = 5;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		float CurrentTime; 
 
