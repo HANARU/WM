@@ -20,7 +20,7 @@
 #include <../Plugins/Animation/MotionWarping/Source/MotionWarping/Public/MotionWarpingComponent.h>
 #include <Animation/AnimMontage.h>
 #include <Kismet/GameplayStatics.h>
-
+#include "AC_AI_Hp.h"
 
 
 AMyPlayer::AMyPlayer()
@@ -470,6 +470,11 @@ void AMyPlayer::Shoot()
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
 		Enemy->SetAttack(this);
+		if (Enemy->hpComp)
+		{
+			Enemy->hpComp->OnHit(4);
+			
+		}
 	}
 
 	PlayShootMontage();

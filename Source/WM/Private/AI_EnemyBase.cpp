@@ -12,6 +12,8 @@
 #include "../WM.h"
 #include "Components/CapsuleComponent.h"
 #include "AI_EnemyAnimInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "AC_AI_Hp.h"
 // Sets default values
 AAI_EnemyBase::AAI_EnemyBase()
 {
@@ -22,6 +24,7 @@ AAI_EnemyBase::AAI_EnemyBase()
 	AutoPossessAI = EAutoPossessAI::Disabled;
 	idleComp = CreateDefaultSubobject<UAC_AI_NonCombat>(TEXT("ACNonCombat"));
 	battComp = CreateDefaultSubobject<UAC_AI_Combat>(TEXT("ACCombat"));
+	hpComp = CreateDefaultSubobject<UAC_AI_Hp>(TEXT("ACHp"));
 	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
 	PawnSensing->SetPeripheralVisionAngle(60);
 	GetCharacterMovement()->MaxWalkSpeed = 200;
@@ -45,6 +48,7 @@ void AAI_EnemyBase::BeginPlay()
 	SmoothDir = GetActorForwardVector();
 	idleComp->OwnerEnemy = this;
 	battComp->OwnerEnemy = this;
+	hpComp->OwnerEnemy = this;
 	PawnSensing->OnSeePawn.AddDynamic(this, &AAI_EnemyBase::OnSeePawn);
 	PawnSensing->OnHearNoise.AddDynamic(this, &AAI_EnemyBase::OnHearNoise);
 	aicontroller = GetWorld()->SpawnActor<AAIController>(AAIController::StaticClass(), GetActorTransform());
@@ -173,9 +177,13 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 	}
 }
 
-void AAI_EnemyBase::SetDie(AMyPlayer* player)
+void AAI_EnemyBase::SetDie()
 {
-	player->isInCombat = false;
+	AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
+	if (player)
+	{
+		player->isInCombat = false;
+	}
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	bIsdie = true;

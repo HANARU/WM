@@ -28,6 +28,8 @@ public:
 	class UAC_AI_NonCombat* idleComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FSM")
 	class UAC_AI_Combat* battComp;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FSM")
+	class UAC_AI_Hp* hpComp;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	class USceneComponent* firepoint;
 	UPROPERTY(EditAnywhere, Category = "FSM")
@@ -62,7 +64,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetAttack(AMyPlayer* player);
 	UFUNCTION(BlueprintCallable)
-	void SetDie(AMyPlayer* player);
+	void SetDie();
 	UFUNCTION(BlueprintCallable)
 	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
 };
