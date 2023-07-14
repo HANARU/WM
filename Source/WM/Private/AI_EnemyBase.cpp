@@ -148,6 +148,7 @@ void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float
 void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 {
 	Target = player;
+	player->isInCombat = true;
 	SeeingTimer = 1.0;
 	if (battComp->State == ECOMBAT::HIDDEN || battComp->State == ECOMBAT::HIDDENRUN) return;
 	bUseControllerRotationYaw = false;
@@ -172,8 +173,9 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 	}
 }
 
-void AAI_EnemyBase::SetDie()
+void AAI_EnemyBase::SetDie(AMyPlayer* player)
 {
+	player->isInCombat = false;
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	bIsdie = true;

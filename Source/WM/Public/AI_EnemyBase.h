@@ -62,7 +62,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetAttack(AMyPlayer* player);
 	UFUNCTION(BlueprintCallable)
-	void SetDie();
+	void SetDie(AMyPlayer* player);
 	UFUNCTION(BlueprintCallable)
 	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
 };
