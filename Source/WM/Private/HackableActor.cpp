@@ -20,6 +20,7 @@ void AHackableActor::BeginPlay()
 {
 	Super::BeginPlay();
 	//CollisionArea->OnComponentBeginOverlap.AddDynamic(this, &AHackableActor::OnOverlapBegin);
+
 }
 
 void AHackableActor::Tick(float DeltaTime)

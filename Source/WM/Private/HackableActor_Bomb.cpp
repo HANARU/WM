@@ -39,8 +39,7 @@ void AHackableActor_Bomb::Action_Interact()
 	GetWorldTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this]()->void
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Destroy!!"));
-			//Destroy();
-			DestroyObject();
+			Destroy();
 		}), 2.f, false);
 }
 
@@ -54,12 +53,12 @@ void AHackableActor_Bomb::Explosion()
 		Enemy->GetMesh()->SetSimulatePhysics(true);
 		Enemy->GetMesh()->AddImpulse(ImpulseVector);
 	}
-
-	
 }
 
 void AHackableActor_Bomb::BeginPlay()
 {
+	Super::BeginPlay();
+
 	ExplosionAffectArea->OnComponentBeginOverlap.AddDynamic(this, &AHackableActor_Bomb::OnOverlapBegin);
 }
 
