@@ -31,6 +31,16 @@ AMyPlayer::AMyPlayer()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempObject(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/Player/SKM_Player.SKM_Player'"));
+
+	if (TempObject.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(TempObject.Object);
+		GetMesh()->SetRelativeLocation(FVector(0,0,-90));
+		GetMesh()->SetRelativeRotation(FRotator(0,0,-90));
+		GetMesh()->SetRelativeScale3D(FVector(0.5,0.5,0.5));	
+	}
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
 
@@ -486,13 +496,16 @@ void AMyPlayer::ZoomIn()
 	isZooming = true;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
 
-
+	bUseControllerRotationYaw = true;
+	bUseControllerRotationPitch = true;
 }
 
 void AMyPlayer::ZoomOut()
 {
 	isZooming = false;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationPitch = false;
 }
 
 void AMyPlayer::Covering()
@@ -514,7 +527,7 @@ void AMyPlayer::Covering()
 		nowCovering = true;
 		if (CoverObjectNormal.Length() != 0)
 		{
-			this->SetActorRotation(CoverObjectNormal.Rotation());
+			this->SetActorRotation(FRotator(0,CoverObjectNormal.Rotation().Yaw,0));
 			//Rotation이 끝난 후 Normal Vector의 Orthogonal Vector을 만들어준다. For Movement
 			CoverObjectOrthogonal = FVector::CrossProduct(CoverObjectNormal, GetMesh()->GetUpVector());
 		}
@@ -526,7 +539,7 @@ void AMyPlayer::Covering()
 bool AMyPlayer::ConverLineTrace(float degree)
 {
 	// Line Trace 입력 값
-	FVector LineTraceStart = PlayerCamera->GetComponentLocation();
+	FVector LineTraceStart = PlayerCamera->GetComponentLocation() - FVector(0,0,50);
 	FRotator Rot (0.f, degree, 0.f);
 	FVector RotVector = UKismetMathLibrary::Quat_RotateVector(Rot.Quaternion(), PlayerCamera->GetForwardVector()) * 800;
 	FVector LineTraceEnd = LineTraceStart + RotVector;
