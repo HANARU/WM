@@ -26,6 +26,8 @@ public:
 	class UArrowComponent* Left45DetectArrow;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Arrow)
 	class UArrowComponent* Right45DetectArrow;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gun)
+	class UStaticMeshComponent* Pistol;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
 	class UMotionWarpingComponent* MotionWraping;
 	
@@ -105,12 +107,14 @@ public:
 		float FillHackableCountTime = 5;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		float CurrentTime; 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UUserWidget* FocusedInteractable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UPostProcessComponent* HackingTransition;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bProcessEvent = false;
+		
 
 	UFUNCTION(BlueprintCallable)
 		float InteractStart_1Sec();
@@ -123,6 +127,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void TrackInteractable();
+
+	UFUNCTION(BlueprintCallable)
+		void OnInteraction(FHitResult HitActor);
 
 	UFUNCTION(BlueprintCallable)
 		void FillHackableCount(float DeltaTime);
@@ -151,7 +158,9 @@ public:
 	// æˆ∆Û¡ﬂ¿Œ∞°?
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cover")
 	bool nowCovering = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cover")
 	bool leftDetect = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cover")
 	bool rightDetect =false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool canGoDetect = false;

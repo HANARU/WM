@@ -21,6 +21,7 @@
 #include <Animation/AnimMontage.h>
 #include <Kismet/GameplayStatics.h>
 #include "AC_AI_Hp.h"
+#include <UMG/Public/Blueprint/UserWidget.h>
 
 
 AMyPlayer::AMyPlayer()
@@ -49,6 +50,7 @@ AMyPlayer::AMyPlayer()
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->SetRelativeLocation(FVector(0, 0, 60));
 	SpringArm->TargetArmLength = 150;
+	SpringArm->SocketOffset.Y = 55;
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	PlayerCamera->SetupAttachment(SpringArm);
@@ -56,6 +58,18 @@ AMyPlayer::AMyPlayer()
 	ShootStartPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ShootStartPoint"));
 	ShootStartPoint->SetupAttachment(GetMesh());
 	ShootStartPoint->SetRelativeLocation(FVector(-40, 20, 130));
+
+	Pistol = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pistol"));
+	Pistol->SetupAttachment(GetMesh(),TEXT("GunBody"));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempPistol(TEXT("/Script/Engine.StaticMesh'/Game/3_SM/Pistol/Makarov/makarov.makarov'"));
+	if (TempPistol.Succeeded())
+	{
+		Pistol->SetStaticMesh(TempPistol.Object);
+		Pistol->SetRelativeLocation(FVector(0.32,-6.4,2.23));
+		Pistol->SetRelativeRotation(FRotator(43,62,45));
+		Pistol->SetRelativeScale3D(FVector(1));
+	}
 
 	CenterArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("CenterArrow"));
 	CenterArrow->SetupAttachment(GetMesh());
@@ -72,23 +86,32 @@ AMyPlayer::AMyPlayer()
 
 	MotionWraping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWraping"));
 
-
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
 
 
-	//Montage 
-	ConstructorHelpers::FObjectFinder<UAnimMontage> TempMontage(TEXT("/Script/Engine.AnimMontage'/Game/4_SK/Animations/Sprint_To_Wall_Climb__1__Montage.Sprint_To_Wall_Climb__1__Montage'"));
+	// Montage 
+	/*ConstructorHelpers::FObjectFinder<UAnimMontage> TempMontage(TEXT("/Script/Engine.AnimMontage'/Game/4_SK/Animations/Sprint_To_Wall_Climb__1__Montage.Sprint_To_Wall_Climb__1__Montage'"));
 
 	if (TempMontage.Succeeded())
 	{
 		ClimbMontageToPlay = TempMontage.Object;
+	}*/
+
+	// UMG
+	ConstructorHelpers::FObjectFinder<UUserWidget> TempUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/2_BP/BP_UI/UI_FocusedInteractableActor.UI_FocusedInteractableActor'"));
+	
+	if (TempUI.Succeeded())
+	{
+		FocusedInteractable = TempUI.Object;
 	}
 }
 
 void AMyPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//FocusedInteractable = CreateWidget<UUserWidget>(GetWorld(),)
 	
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
@@ -456,7 +479,20 @@ void AMyPlayer::TrackInteractable()
 
 			CCTV = Cast<ACCTV>(HitResult.GetActor());
 			HackableActor = Cast<AHackableActor>(HitResult.GetActor());
+			OnInteraction(HitResult);
 		}
+	}
+}
+
+void AMyPlayer::OnInteraction(FHitResult HitActor)
+{
+	//CCTV = Cast<ACCTV>(HitActor.GetActor());
+	if (FocusedInteractable && FocusedInteractable->IsInViewport())
+	{
+		return;
+	}
+	else if(FocusedInteractable && !(FocusedInteractable->IsInViewport())) {
+		FocusedInteractable->AddToViewport();
 	}
 }
 
@@ -497,7 +533,7 @@ void AMyPlayer::ZoomIn()
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
 
 	bUseControllerRotationYaw = true;
-	bUseControllerRotationPitch = true;
+	//bUseControllerRotationPitch = true;
 }
 
 void AMyPlayer::ZoomOut()
