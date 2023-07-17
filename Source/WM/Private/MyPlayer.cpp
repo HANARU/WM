@@ -22,6 +22,7 @@
 #include <Kismet/GameplayStatics.h>
 #include "AC_AI_Hp.h"
 #include <UMG/Public/Blueprint/UserWidget.h>
+#include <Components/PawnNoiseEmitterComponent.h>
 
 
 AMyPlayer::AMyPlayer()
@@ -32,14 +33,14 @@ AMyPlayer::AMyPlayer()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempObject(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/Player/SKM_Player.SKM_Player'"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempObject(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/Aiden/Aiden.Aiden'"));
 
 	if (TempObject.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(TempObject.Object);
 		GetMesh()->SetRelativeLocation(FVector(0,0,-90));
 		GetMesh()->SetRelativeRotation(FRotator(0,0,-90));
-		GetMesh()->SetRelativeScale3D(FVector(0.5,0.5,0.5));	
+		GetMesh()->SetRelativeScale3D(FVector(0.5));	
 	}
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -66,9 +67,9 @@ AMyPlayer::AMyPlayer()
 	if (TempPistol.Succeeded())
 	{
 		Pistol->SetStaticMesh(TempPistol.Object);
-		Pistol->SetRelativeLocation(FVector(0.32,-6.4,2.23));
-		Pistol->SetRelativeRotation(FRotator(43,62,45));
-		Pistol->SetRelativeScale3D(FVector(1));
+		Pistol->SetRelativeLocation(FVector(-25.4,14,4.64));
+		Pistol->SetRelativeRotation(FRotator(0,0.156,-94));
+		Pistol->SetRelativeScale3D(FVector(0.3));
 	}
 
 	CenterArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("CenterArrow"));
@@ -85,6 +86,9 @@ AMyPlayer::AMyPlayer()
 	Right45DetectArrow->SetupAttachment(GetCapsuleComponent());
 
 	MotionWraping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWraping"));
+
+	PawnNoiseEmitter = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
+	PawnNoiseEmitter->bAutoActivate = true;
 
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
@@ -278,6 +282,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 	// LineTrace 발사
 	// 입력 값
 	FVector Start = GetCapsuleComponent()->GetComponentLocation();
+	StandUprototator = GetCapsuleComponent()->GetForwardVector();
 	FVector End = Start + GetCapsuleComponent()->GetForwardVector() * DistanceToObject;
 	TArray<AActor*> ActorsToIgnore;
 	FHitResult HitResult;
@@ -481,6 +486,9 @@ void AMyPlayer::TrackInteractable()
 			HackableActor = Cast<AHackableActor>(HitResult.GetActor());
 			OnInteraction(HitResult);
 		}
+		else {
+			OnInteraction(HitResult);
+		}
 	}
 }
 
@@ -504,7 +512,7 @@ void AMyPlayer::Shoot()
 	FVector StartLocation = ShootStartPoint->GetComponentLocation();
 	FVector EndLocation = PlayerCamera->GetComponentLocation() + PlayerCamera->GetForwardVector() * ShootRange;
 
-	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_EngineTraceChannel6);
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel6);
 	DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
 
 	AddControllerYawInput(HorizontalRecoil);
@@ -514,12 +522,21 @@ void AMyPlayer::Shoot()
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
 	if(IsValid(Enemy))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
-		Enemy->SetAttack(this);
-		if (Enemy->hpComp)
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, HitResult.GetComponent()->GetName());
+		if (HitResult.GetComponent()->GetName() == "cap_head")
 		{
-			Enemy->hpComp->OnHit(4);
-			
+			Enemy->SetDie();
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
+
+			Enemy->SetAttack(this);
+			if (Enemy->hpComp)
+			{
+				Enemy->hpComp->OnHit(4);
+
+			}
 		}
 	}
 

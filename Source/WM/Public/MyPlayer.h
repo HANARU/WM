@@ -30,7 +30,10 @@ public:
 	class UStaticMeshComponent* Pistol;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
 	class UMotionWarpingComponent* MotionWraping;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
+	class UPawnNoiseEmitterComponent* PawnNoiseEmitter;
+
+
 //-----------------------Enhanced Input System--------------------//
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -187,6 +190,8 @@ public:
 	float VaultLimit = 150;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
 	float LineDelta = 20;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
+	FVector StandUprototator; 
 
 	// 뛰어넘을 수 있는가?
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
