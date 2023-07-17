@@ -38,6 +38,7 @@ ACCTV::ACCTV()
 
 	CollisionArea = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	CollisionArea->SetupAttachment(Camera);
+	CollisionArea->SetSphereRadius(64);
 
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
