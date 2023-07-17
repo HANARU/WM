@@ -42,4 +42,8 @@ public:
 	float repeatTimer = 0;
 	UPROPERTY(EditAnywhere, Category = "Query")
 	TArray<FHideLoc> coverArray;
+	UPROPERTY(EditAnywhere, Category = "Query")
+	class ANavigationData* naviData;
+	UPROPERTY(EditAnywhere, Category = "Query")
+	class UNavigationSystemV1* naviSystem;
 };
