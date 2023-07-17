@@ -128,7 +128,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void TrackInteractable();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintImplementableEvent, Category="Interact")
 		void OnInteraction(FHitResult HitActor);
 
 	UFUNCTION(BlueprintCallable)
@@ -186,7 +186,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
 	float VaultLimit = 150;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
-	float LineDelta = 50;
+	float LineDelta = 20;
 
 	// 뛰어넘을 수 있는가?
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")

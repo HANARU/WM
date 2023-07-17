@@ -484,17 +484,17 @@ void AMyPlayer::TrackInteractable()
 	}
 }
 
-void AMyPlayer::OnInteraction(FHitResult HitActor)
-{
-	//CCTV = Cast<ACCTV>(HitActor.GetActor());
-	if (FocusedInteractable && FocusedInteractable->IsInViewport())
-	{
-		return;
-	}
-	else if(FocusedInteractable && !(FocusedInteractable->IsInViewport())) {
-		FocusedInteractable->AddToViewport();
-	}
-}
+//void AMyPlayer::OnInteraction(FHitResult HitActor)
+//{
+//	//CCTV = Cast<ACCTV>(HitActor.GetActor());
+//	if (FocusedInteractable && FocusedInteractable->IsInViewport())
+//	{
+//		return;
+//	}
+//	else if(FocusedInteractable && !(FocusedInteractable->IsInViewport())) {
+//		FocusedInteractable->AddToViewport();
+//	}
+//}
 
 void AMyPlayer::Shoot()
 {
