@@ -24,8 +24,11 @@ void UAI_EnemyAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		bIsSit = Owner->battComp->bIsSit;
 		if (Owner->Target)
 		{
-			FVector SubDir = Owner->battComp->firepoint - Owner->firepoint->GetComponentLocation();
-			targetaimDir = SubDir.Rotation().Pitch;
+			if(Owner->firepoint)
+			{
+				FVector SubDir = Owner->battComp->firepoint - Owner->firepoint->GetComponentLocation();
+				targetaimDir = SubDir.Rotation().Pitch;
+			}
 		}
 		else
 		{

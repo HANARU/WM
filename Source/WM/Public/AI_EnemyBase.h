@@ -23,7 +23,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 public:
-
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	TArray<UCapsuleComponent*> Colcapsules;
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	class UStaticMeshComponent* makaComp;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	class UAC_AI_NonCombat* idleComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FSM")

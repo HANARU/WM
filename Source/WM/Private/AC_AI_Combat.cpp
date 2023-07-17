@@ -70,7 +70,7 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 
 void UAC_AI_Combat::Fire()
 {
-	if (FireTimer == 0 && !OwnerEnemy->TargetBones.IsEmpty())
+	if (OwnerEnemy->firepoint && FireTimer == 0 && !OwnerEnemy->TargetBones.IsEmpty())
 	{
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;

@@ -20,11 +20,97 @@ AAI_EnemyBase::AAI_EnemyBase()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMaka(TEXT("/Script/Engine.StaticMesh'/Game/3_SM/Pistol/Makarov/makarov.makarov'"));
+
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> tempSkel(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/SKM_Quinn.SKM_Quinn'"));
 	AutoPossessAI = EAutoPossessAI::Disabled;
 	idleComp = CreateDefaultSubobject<UAC_AI_NonCombat>(TEXT("ACNonCombat"));
 	battComp = CreateDefaultSubobject<UAC_AI_Combat>(TEXT("ACCombat"));
 	hpComp = CreateDefaultSubobject<UAC_AI_Hp>(TEXT("ACHp"));
+
+	FTransform tempTrans;
+
+	#pragma region SetCapsuleInMesh
+	tempTrans.SetLocation(FVector(0, -9, 4));
+	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(0.f, 90.f, 0.f)));
+	tempTrans.SetScale3D(FVector(.4, .4, .15));
+	UCapsuleComponent* capH = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_head"));
+	capH->SetupAttachment(GetMesh(), "head");
+	capH->SetRelativeTransform(tempTrans);
+
+	tempTrans.SetLocation(FVector(0, -3, 4));
+	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(-90.f, 0, 0.f)));
+	tempTrans.SetScale3D(FVector(1, .75, .8));
+	UCapsuleComponent* capB = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_body"));
+	capB->SetupAttachment(GetMesh(), "spine_02");
+	capB->SetRelativeTransform(tempTrans);
+
+	tempTrans.SetLocation(FVector(0, -3, 0));
+	tempTrans.SetScale3D(FVector(.1, .2, .3));
+	UCapsuleComponent* capUal = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_uparm_l"));
+	capUal->SetupAttachment(GetMesh(), "upperarm_l");
+	capUal->SetRelativeTransform(tempTrans);
+	UCapsuleComponent* capUar = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_uparm_r"));
+	capUar->SetupAttachment(GetMesh(), "upperarm_r");
+	capUar->SetRelativeTransform(tempTrans);
+
+	tempTrans.SetLocation(FVector(0, -9, 0));
+	tempTrans.SetScale3D(FVector(.1, .2, .55));
+	UCapsuleComponent* capDal = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downarm_l"));
+	capDal->SetupAttachment(GetMesh(), "lowerarm_l");
+	capDal->SetRelativeTransform(tempTrans);
+	UCapsuleComponent* capDar = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downarm_r"));
+	capDar->SetupAttachment(GetMesh(), "lowerarm_r");
+	capDar->SetRelativeTransform(tempTrans);
+
+	tempTrans.SetLocation(FVector(0, -3, 0));
+	tempTrans.SetScale3D(FVector(.5, .2, .55));
+	UCapsuleComponent* capUll = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_upleg_l"));
+	capUll->SetupAttachment(GetMesh(), "thigh_l");
+	capUll->SetRelativeTransform(tempTrans);
+	UCapsuleComponent* capUlr = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_upleg_r"));
+	capUlr->SetupAttachment(GetMesh(), "thigh_r");
+	capUlr->SetRelativeTransform(tempTrans);
+
+	tempTrans.SetLocation(FVector(0, -24, 0));
+	tempTrans.SetScale3D(FVector(.25, .2, .55));
+	UCapsuleComponent* capDll = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downleg_l"));
+	capDll->SetupAttachment(GetMesh(), "calf_l");
+	capDll->SetRelativeTransform(tempTrans);
+	UCapsuleComponent* capDlr = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downleg_r"));
+	capDlr->SetupAttachment(GetMesh(), "calf_r");
+	capDlr->SetRelativeTransform(tempTrans);
+
+	Colcapsules.Add(capB);
+	Colcapsules.Add(capH);
+	Colcapsules.Add(capDal);
+	Colcapsules.Add(capDar);
+	Colcapsules.Add(capDll);
+	Colcapsules.Add(capDlr);
+	Colcapsules.Add(capUal);
+	Colcapsules.Add(capUar);
+	Colcapsules.Add(capUll);
+	Colcapsules.Add(capUlr);
+	#pragma endregion SetCapsuleInMesh
+
+	tempTrans.SetLocation(FVector(1, -13.8, 2.65));
+	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(90.f, -75.f, -90.f)));
+	tempTrans.SetScale3D(FVector(.1, .1, .1));
+	makaComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("makarov"));
+	makaComp->SetupAttachment(GetMesh(), "hand_r");
+	makaComp->SetRelativeTransform(tempTrans);
+	if (tempMaka.Succeeded())
+	{
+		makaComp->SetStaticMesh(tempMaka.Object);
+	}
+
+	tempTrans.SetLocation(FVector(.2, -84, 58));
+	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(180.f, .5f, .5f)));
+	tempTrans.SetScale3D(FVector(1, 1, 1));
+	firepoint = CreateDefaultSubobject<USceneComponent>(TEXT("Fpoint"));
+	firepoint->SetupAttachment(makaComp);
+	firepoint->SetRelativeTransform(tempTrans);
+
 	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
 	PawnSensing->SetPeripheralVisionAngle(60);
 	GetCharacterMovement()->MaxWalkSpeed = 200;
@@ -54,17 +140,17 @@ void AAI_EnemyBase::BeginPlay()
 	aicontroller = GetWorld()->SpawnActor<AAIController>(AAIController::StaticClass(), GetActorTransform());
 	aicontroller->Possess(this);
 	animins = Cast<UAI_EnemyAnimInstance> (GetMesh()->GetAnimInstance());
-	for (UActorComponent* Component : GetComponents())
-	{
-		if (Component->GetName() == "Fpoint")
-		{
-			USceneComponent* Scene = Cast<USceneComponent>(Component);
-			if (Scene)
-			{
-				firepoint = Scene;
-			}
-		}
-	}
+	//for (UActorComponent* Component : GetComponents())
+	//{
+	//	if (Component->GetName() == "Fpoint")
+	//	{
+	//		USceneComponent* Scene = Cast<USceneComponent>(Component);
+	//		if (Scene)
+	//		{
+	//			firepoint = Scene;
+	//		}
+	//	}
+	//}
 }
 void AAI_EnemyBase::Tick(float DeltaTime)
 {
@@ -79,6 +165,7 @@ FHitResult AAI_EnemyBase::LineTraceSocket(FName SocketName, ACharacter* TargetCh
 	FVector TraceStart = GetMesh()->GetSocketLocation(FName(TEXT("head")));
 	FVector TraceEnd = TargetCharacter->GetMesh()->GetSocketLocation(SocketName);
 	GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_GameTraceChannel4, QueryParams);
+	DrawDebugLine(GetWorld(), TraceStart, Hit.Location, FColor::Blue, false, 1);
 	return Hit;
 }
 
@@ -97,36 +184,37 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 			result += HitResult.bBlockingHit * 80;
 			TargetBones.Add(FName("head"));
 		}
-		HitResult = LineTraceSocket(FName("spine_03"), player);
+		HitResult = LineTraceSocket(FName("Spine2"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 130;
-			TargetBones.Add(FName("spine_03"));
+			TargetBones.Add(FName("Spine2"));
 		}
-		HitResult = LineTraceSocket(FName("hand_r"), player);
+		HitResult = LineTraceSocket(FName("RightHand"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("hand_r"));
+			TargetBones.Add(FName("RightHand"));
 		}
-		HitResult = LineTraceSocket(FName("hand_l"), player);
+		HitResult = LineTraceSocket(FName("LeftHand"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("hand_l"));
+			TargetBones.Add(FName("LeftHand"));
 		}
-		HitResult = LineTraceSocket(FName("ball_r"), player);
+		HitResult = LineTraceSocket(FName("RightFoot"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("ball_r"));
+			TargetBones.Add(FName("RightFoot"));
 		}
-		HitResult = LineTraceSocket(FName("ball_l"), player);
+		HitResult = LineTraceSocket(FName("LeftFoot"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("ball_l"));
+			TargetBones.Add(FName("LeftFoot"));
 		}
+		PRINT_LOG(TEXT("%d"), result);
 		if (result > 100 - bIsBattle * 80)
 		{
 			SetAttack(player);
@@ -139,12 +227,13 @@ void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float
 	if (bIsdie) return;
 	if (Volume > .5)
 	{
+		PRINT_LOG(TEXT("hearsound"));
 		TargetDir = Location - GetActorLocation();
 		TargetDir.Normalize();
 		if (!bIsBattle)
 		{
-			aicontroller->MoveToLocation(Location);
-			SetActorRotation(TargetDir.Rotation());
+			aicontroller->StopMovement();
+			SetActorRotation(FRotator(0, TargetDir.Rotation().Yaw, 0));
 		}
 	}
 }
@@ -186,5 +275,9 @@ void AAI_EnemyBase::SetDie()
 	}
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	for (UCapsuleComponent* capsule : Colcapsules)
+	{
+		capsule->SetCollisionProfileName("NoCollision");
+	}
 	bIsdie = true;
 }
