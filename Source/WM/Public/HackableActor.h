@@ -32,6 +32,4 @@ public:
 
 	virtual void Action_Interact_Single() {}
 
-	virtual void Action_Interact_1Sec() {}
-
 };

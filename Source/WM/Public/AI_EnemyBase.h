@@ -63,6 +63,8 @@ public:
 	class AAIController* aicontroller;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	class UAI_EnemyAnimInstance* animins; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "USERAI")
+		FString AI_Num;
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn *OtherPawn);
@@ -74,4 +76,6 @@ public:
 	void SetDie();
 	UFUNCTION(BlueprintCallable)
 	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
+	UFUNCTION(BlueprintImplementableEvent)
+		void CheckAIData();
 };

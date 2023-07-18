@@ -1,5 +1,6 @@
 #include "CCTV.h"
 #include "MyPlayer.h"
+#include "WM_Instance.h"
 #include "AI_EnemyBase.h"
 #include "HackableActor.h"
 #include "Components/SphereComponent.h"
@@ -133,6 +134,7 @@ void ACCTV::TrackInteractable()
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				TrackedEnemy = Cast<AAI_EnemyBase>(HitActor);
+				TrackedEnemy->CheckAIData();
 			}
 		}
 	}
@@ -160,7 +162,6 @@ void ACCTV::InteractStart_1Sec()
 		else if (IsValid(HackableActor))
 		{
 			InteractionTime = 0.f;
-			HackableActor->Action_Interact_1Sec();
 		}
 	}
 	else
@@ -180,7 +181,6 @@ void ACCTV::InteractionSinglePress()
 	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
 	if (IsValid(HackableActor))
 	{
-		
 		HackableActor->Action_Interact_Single();
 	}
 }

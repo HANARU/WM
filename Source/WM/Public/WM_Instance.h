@@ -15,4 +15,7 @@ public:
 		class AMyPlayer* Player;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int HackedAPCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		AActor* TrackedEnemy = nullptr;
+
 };
