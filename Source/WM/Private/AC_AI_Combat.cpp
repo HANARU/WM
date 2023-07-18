@@ -12,6 +12,7 @@
 #include "AIModule/Classes/AITypes.h"
 #include "AIModule/Classes/AIController.h"
 #include "AI_EnemyAnimInstance.h"
+#include "AIModule/Classes/Perception/PawnSensingComponent.h"
 // Sets default values for this component's properties
 UAC_AI_Combat::UAC_AI_Combat()
 {
@@ -206,6 +207,7 @@ void UAC_AI_Combat::StateHold()
 		OwnerEnemy->TargetDir = FVector::ZeroVector;
 		OwnerEnemy->TargetLoc = FVector::ZeroVector;
 		OwnerEnemy->bIsBattle = false;
+		OwnerEnemy->PawnSensing->SetPeripheralVisionAngle(60);
 		OwnerEnemy->bUseControllerRotationYaw = true;
 	}
 }

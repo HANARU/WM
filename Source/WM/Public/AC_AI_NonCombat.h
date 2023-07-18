@@ -32,14 +32,20 @@ public:
 
 public:
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
+	int pointtagindex;
+	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	TArray<AActor*> pointArray;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	AActor* currentPoint;
+	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
+	FVector	TargetLoc;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	ENONCOMBAT State = ENONCOMBAT::IDLE;
 public:	
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	float StateTimer;
+	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
+	ENONCOMBAT StateBefore;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	class AAI_EnemyBase* OwnerEnemy;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
@@ -51,4 +57,8 @@ public:
 	void SetRandomPoint();
 	UFUNCTION(BlueprintCallable)
 	void StateChange(ENONCOMBAT ChageState);
+	UFUNCTION(BlueprintCallable)
+	void StateIdle();
+	UFUNCTION(BlueprintCallable)
+	void StateMove();
 };

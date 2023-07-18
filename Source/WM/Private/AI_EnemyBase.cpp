@@ -38,9 +38,9 @@ AAI_EnemyBase::AAI_EnemyBase()
 	capH->SetupAttachment(GetMesh(), "head");
 	capH->SetRelativeTransform(tempTrans);
 
-	tempTrans.SetLocation(FVector(0, -3, 4));
+	tempTrans.SetLocation(FVector(0, -3, 0));
 	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(-90.f, 0, 0.f)));
-	tempTrans.SetScale3D(FVector(1, .75, .8));
+	tempTrans.SetScale3D(FVector(.6, .6, .8));
 	UCapsuleComponent* capB = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_body"));
 	capB->SetupAttachment(GetMesh(), "spine_02");
 	capB->SetRelativeTransform(tempTrans);
@@ -155,6 +155,14 @@ void AAI_EnemyBase::BeginPlay()
 void AAI_EnemyBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bIshit)
+	{
+		HitTimer -= DeltaTime;
+		if (HitTimer < 0)
+		{
+			bIshit = false;
+		}
+	}
 }
 
 FHitResult AAI_EnemyBase::LineTraceSocket(FName SocketName, ACharacter* TargetCharacter)
@@ -165,7 +173,7 @@ FHitResult AAI_EnemyBase::LineTraceSocket(FName SocketName, ACharacter* TargetCh
 	FVector TraceStart = GetMesh()->GetSocketLocation(FName(TEXT("head")));
 	FVector TraceEnd = TargetCharacter->GetMesh()->GetSocketLocation(SocketName);
 	GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_GameTraceChannel4, QueryParams);
-	DrawDebugLine(GetWorld(), TraceStart, Hit.Location, FColor::Blue, false, 1);
+	//DrawDebugLine(GetWorld(), TraceStart, Hit.Location, FColor::Blue, false, 1);
 	return Hit;
 }
 
@@ -240,6 +248,7 @@ void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float
 
 void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 {
+	animins->StopAllMontages(.5);
 	Target = player;
 	player->isInCombat = true;
 	SeeingTimer = 1.0;
@@ -258,6 +267,7 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 			battComp->StateChange(ECOMBAT::HIDDENRUN);
 		}
 		battComp->CoverTimer = 3;
+		PawnSensing->SetPeripheralVisionAngle(90);
 		bIsBattle = true;
 	}
 	else
@@ -277,7 +287,8 @@ void AAI_EnemyBase::SetDie()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	for (UCapsuleComponent* capsule : Colcapsules)
 	{
-		capsule->SetCollisionProfileName("NoCollision");
+		if(capsule)
+		capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	bIsdie = true;
 }

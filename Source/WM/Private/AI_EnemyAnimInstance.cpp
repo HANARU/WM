@@ -22,7 +22,7 @@ void UAI_EnemyAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		MovementDir = CalculateDirection(XYVec, Owner->GetActorForwardVector().Rotation());
 		bIsCombat = Owner->bIsBattle;
 		bIsSit = Owner->battComp->bIsSit;
-		if (Owner->Target)
+		if (Owner->TargetLoc != FVector::ZeroVector)
 		{
 			if(Owner->firepoint)
 			{

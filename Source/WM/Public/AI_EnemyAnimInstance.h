@@ -39,4 +39,8 @@ public :
 	class AAI_EnemyBase* Owner;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	class UAnimMontage* fireMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
+	class UAnimMontage* IdleMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
+	class UAnimMontage* HitMontage;
 };

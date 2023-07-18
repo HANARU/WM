@@ -38,6 +38,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	bool bIsdie;
 	UPROPERTY(EditAnywhere, Category = "FSM")
+	bool bIshit;
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	float HitTimer;
+	UPROPERTY(EditAnywhere, Category = "FSM")
 	bool bIsBattle;
 	//UPROPERTY(EditAnywhere, Category = "Collision")
 	//TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_GameTraceChannel2;
