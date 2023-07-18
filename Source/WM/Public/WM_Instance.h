@@ -13,4 +13,6 @@ public:
 	UWM_Instance();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AMyPlayer* Player;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int HackedAPCount = 0;
 };

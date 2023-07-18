@@ -157,6 +157,11 @@ void ACCTV::InteractStart_1Sec()
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			bIsUsing = false;
 		}
+		else if (IsValid(HackableActor))
+		{
+			InteractionTime = 0.f;
+			HackableActor->Action_Interact_1Sec();
+		}
 	}
 	else
 	{
@@ -176,7 +181,7 @@ void ACCTV::InteractionSinglePress()
 	if (IsValid(HackableActor))
 	{
 		
-		HackableActor->Action_Interact();
+		HackableActor->Action_Interact_Single();
 	}
 }
 

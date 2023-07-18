@@ -19,7 +19,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class USphereComponent* ExplosionAffectArea;
 
-	virtual void Action_Interact() override;
+	virtual void Action_Interact_Single() override;
 
 	void Explosion();
 

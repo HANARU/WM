@@ -1,17 +1,21 @@
 #include "HackableActor.h"
 #include "AI_EnemyBase.h"
+#include "Components/SceneComponent.h"
 #include "Components/SphereComponent.h"
 
 AHackableActor::AHackableActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultSceneRoot"));
+	RootComponent = DefaultSceneRoot;
+
 	CollisionArea = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionArea"));
-	RootComponent = CollisionArea;
+	CollisionArea->SetupAttachment(RootComponent);
 	CollisionArea->SetSphereRadius(40);
 
 	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
-	BodyMesh->SetupAttachment(CollisionArea);
+	BodyMesh->SetupAttachment(RootComponent);
 	BodyMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
@@ -27,9 +31,5 @@ void AHackableActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-}
-
-void AHackableActor::Action_Interact()
-{
 }
 

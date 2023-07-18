@@ -9,11 +9,11 @@
 AHackableActor_Bomb::AHackableActor_Bomb()
 {
 	FXExplosion = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle"));
-	FXExplosion->SetupAttachment(CollisionArea);
+	FXExplosion->SetupAttachment(RootComponent);
 	FXExplosion->SetAutoActivate(false);
 
 	ExplosionAffectArea = CreateDefaultSubobject<USphereComponent>(TEXT("ExplosionArea"));
-	ExplosionAffectArea->SetupAttachment(CollisionArea);
+	ExplosionAffectArea->SetupAttachment(RootComponent);
 	ExplosionAffectArea->SetSphereRadius(128);
 
 	RadialForceComponent = CreateDefaultSubobject<URadialForceComponent>(TEXT("Force"));
@@ -27,7 +27,7 @@ AHackableActor_Bomb::AHackableActor_Bomb()
 	}
 }
 
-void AHackableActor_Bomb::Action_Interact()
+void AHackableActor_Bomb::Action_Interact_Single()
 {
 	FVector ExplosionLocation = GetActorLocation();
 
