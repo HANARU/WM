@@ -63,13 +63,14 @@ void AMyQuery::Tick(float DeltaTime)
 					naviSystem->ProjectPointToNavigation(Loc, nearnavloc);
 					if (FVector(nearnavloc.Location.X - Loc.X, nearnavloc.Location.Y - Loc.Y, 0).Size() > 100)
 						continue;
+					if ((player->GetActorLocation() - Loc).Size() <= 500.f)
+						continue;
 					Loc = nearnavloc.Location;
-					DrawDebugSphere(GetWorld(), Loc, 30.f, 0, FColor::Blue, false, 1);
-					TArray<AActor*> ActorsToIgnore;
+					/*TArray<AActor*> ActorsToIgnore;
 					ActorsToIgnore.Add(this);
 					FColor color = FColor::Red;
-					FHitResult hitinfo;
-					bool bHit = UKismetSystemLibrary::SphereTraceSingle(
+					FHitResult hitinfo;*/
+					/*bool bHit = UKismetSystemLibrary::SphereTraceSingle(
 						GetWorld(),
 						Loc,
 						Loc,
@@ -80,59 +81,63 @@ void AMyQuery::Tick(float DeltaTime)
 						EDrawDebugTrace::None,
 						hitinfo,
 						true
-					);
-					if (!bHit)
-						continue;
-					AActor* HitActor = hitinfo.GetActor();
-					if ((HitActor->IsA(AAI_EnemyBase::StaticClass()))
-						|| (HitActor->IsA(AMyPlayer::StaticClass()))
-						|| ((player->GetActorLocation() - Loc).Size() <= 500.f))
-						continue;
+					);*/
+					/*if (!bHit)
+						continue;*/
+					//AActor* HitActor = hitinfo.GetActor();
+					/*if ((HitActor->IsA(AAI_EnemyBase::StaticClass()))
+						|| (HitActor->IsA(AMyPlayer::StaticClass())))
+						continue;*/
+					DrawDebugSphere(GetWorld(), Loc, 30.f, 0, FColor::Blue, false, 1);
 					FCollisionQueryParams QueryParams;
 					FVector dir = player->GetActorLocation() - Loc;
 					dir.Normalize();
+					FVector xydir = dir;
+					xydir.Z = 0;
 					QueryParams.AddIgnoredActor(this);
-					FHitResult hitsecinfo;
+					FHitResult LineHitResult;
 					bool bSecHit = GetWorld()->LineTraceSingleByChannel(
-						hitsecinfo,
+						LineHitResult,
 						Loc,
-						Loc + dir * 100,
+						Loc + xydir * 150,
 						ECC_GameTraceChannel12,
 						QueryParams
 					);
-					if (hitsecinfo.GetActor() != player && bSecHit && !hitsecinfo.GetActor()->IsA(AAI_EnemyBase::StaticClass()))
+					AActor* HitActor = LineHitResult.GetActor();
+					if (HitActor != player && bSecHit && !HitActor->IsA(AAI_EnemyBase::StaticClass()))
 					{
 						FVector origin;
 						FVector boxextent;
 						HitActor->GetActorBounds(false, origin, boxextent);
-						bool bIsWall = (boxextent.Z > 100);
+						bool bIsWall = (boxextent.Z > 70);
+						PRINT_LOG(TEXT("%f"), boxextent.Z);
 						if (bIsWall)
 						{
 							FHitResult hitoneresult;
-							FVector rightVec = FVector::CrossProduct(dir, FVector::RightVector);
+							FVector rightVec = FVector::CrossProduct(LineHitResult.Normal, FVector::UpVector);
 							bool bOneCheck = GetWorld()->LineTraceSingleByChannel(
 								hitoneresult,
 								Loc + rightVec * 100,
-								Loc + dir * 100 + rightVec * 100,
+								Loc + xydir * 200 + rightVec * 100,
 								ECC_GameTraceChannel12,
 								QueryParams
 							);
 							FHitResult hittworesult;
-							FVector leftVec = FVector::CrossProduct(dir, FVector::RightVector);
+							FVector leftVec = FVector::CrossProduct(LineHitResult.Normal, FVector::DownVector);
 							bool bTwoCheck = GetWorld()->LineTraceSingleByChannel(
 								hittworesult,
 								Loc + leftVec * 100,
-								Loc + dir * 100 + leftVec * 100,
+								Loc + xydir * 200 + leftVec * 100,
 								ECC_GameTraceChannel12,
 								QueryParams
 							);
 							if (bOneCheck)
 							{
-								DrawDebugSphere(GetWorld(), Loc + rightVec * 100, 50.f, 0, FColor::Emerald, false, 1);
+								DrawDebugLine(GetWorld(), Loc, Loc + rightVec * 100, FColor::Blue, false, 1);
 							}
 							if (bTwoCheck)
 							{
-								DrawDebugSphere(GetWorld(), Loc + leftVec * 100, 50.f, 0, FColor::Red, false, 1);
+								DrawDebugLine(GetWorld(), Loc, Loc + leftVec * 100, FColor::Red, false, 1);
 							}
 							if (!(bOneCheck ^ bTwoCheck))
 							{
@@ -140,8 +145,7 @@ void AMyQuery::Tick(float DeltaTime)
 							}
 							DrawDebugSphere(GetWorld(), Loc, 50.f, 0, FColor::Green, false, 1);
 						}
-						//PRINT_LOG(TEXT("%f"), boxextent.Z);
-						DrawDebugSphere(GetWorld(), Loc, 30.f, 0, FColor::Black, false, 1);
+						DrawDebugSphere(GetWorld(), Loc, 60.f, 10, FColor::Green, false, 1);
 						FHideLoc hideloc;
 						hideloc.Loc = Loc;
 						hideloc.bIsWall = bIsWall;
