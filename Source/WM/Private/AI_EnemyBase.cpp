@@ -112,7 +112,7 @@ AAI_EnemyBase::AAI_EnemyBase()
 	firepoint->SetRelativeTransform(tempTrans);
 
 	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
-	PawnSensing->SetPeripheralVisionAngle(60);
+	PawnSensing->SetPeripheralVisionAngle(80);
 	GetCharacterMovement()->MaxWalkSpeed = 200;
 
 	if (tempSkel.Succeeded())
@@ -192,35 +192,35 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 			result += HitResult.bBlockingHit * 80;
 			TargetBones.Add(FName("head"));
 		}
-		HitResult = LineTraceSocket(FName("Spine2"), player);
+		HitResult = LineTraceSocket(FName("spine_03"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 130;
-			TargetBones.Add(FName("Spine2"));
+			TargetBones.Add(FName("spine_03"));
 		}
-		HitResult = LineTraceSocket(FName("RightHand"), player);
+		HitResult = LineTraceSocket(FName("hand_r"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("RightHand"));
+			TargetBones.Add(FName("hand_r"));
 		}
-		HitResult = LineTraceSocket(FName("LeftHand"), player);
+		HitResult = LineTraceSocket(FName("hand_l"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("LeftHand"));
+			TargetBones.Add(FName("hand_l"));
 		}
-		HitResult = LineTraceSocket(FName("RightFoot"), player);
+		HitResult = LineTraceSocket(FName("foot_r"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("RightFoot"));
+			TargetBones.Add(FName("foot_r"));
 		}
-		HitResult = LineTraceSocket(FName("LeftFoot"), player);
+		HitResult = LineTraceSocket(FName("foot_l"), player);
 		if (HitResult.GetActor() == player)
 		{
 			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("LeftFoot"));
+			TargetBones.Add(FName("foot_l"));
 		}
 		PRINT_LOG(TEXT("%d"), result);
 		if (result > 100 - bIsBattle * 80)

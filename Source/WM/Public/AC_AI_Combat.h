@@ -65,6 +65,10 @@ public:
 	float SitTimer;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	FVector firepoint;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class USoundCue* firesound;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class USoundCue* bulletsound;
 public:
 	UFUNCTION(BlueprintCallable)
 	void Fire();

@@ -13,6 +13,8 @@
 #include "AIModule/Classes/AIController.h"
 #include "AI_EnemyAnimInstance.h"
 #include "AIModule/Classes/Perception/PawnSensingComponent.h"
+#include "Sound/SoundWave.h"
+#include "Sound/SoundCue.h"
 // Sets default values for this component's properties
 UAC_AI_Combat::UAC_AI_Combat()
 {
@@ -94,8 +96,10 @@ void UAC_AI_Combat::Fire()
 		boneloc = boneloc + randvec * maxrand - OwnerEnemy->GetActorLocation();
 		boneloc.Normalize();
 		boneloc = OwnerEnemy->GetActorLocation() + boneloc * 5000;
-		//DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);
+		//DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);USoundBase
 		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->firepoint->GetComponentLocation(), boneloc, ECC_GameTraceChannel6, QueryParams);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), firesound, OwnerEnemy->firepoint->GetComponentLocation());
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), bulletsound, firepoint, FMath::FRandRange(0., 1.));
 		DrawDebugLine(GetWorld(), OwnerEnemy->firepoint->GetComponentLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
 		OwnerEnemy->animins->Montage_Play(OwnerEnemy->animins->fireMontage);
 		if (HitResult.bBlockingHit)
@@ -253,7 +257,6 @@ void UAC_AI_Combat::StateMoveCover()
 		StateChange(ECOMBAT::ATTACK);
 	}
 }
-
 void UAC_AI_Combat::StateMoveCoverRun()
 {
 	if (OwnerEnemy->aicontroller->GetMoveStatus() == EPathFollowingStatus::Idle)
@@ -267,7 +270,6 @@ void UAC_AI_Combat::StateMoveCoverRun()
 		StateChange(ECOMBAT::ATTACK);
 	}
 }
-
 bool UAC_AI_Combat::FindAndMoveCover()
 {
 	AMyQuery* getquery = Cast<AMyQuery>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyQuery::StaticClass()));

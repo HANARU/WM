@@ -88,7 +88,7 @@ void AMyQuery::Tick(float DeltaTime)
 					/*if ((HitActor->IsA(AAI_EnemyBase::StaticClass()))
 						|| (HitActor->IsA(AMyPlayer::StaticClass())))
 						continue;*/
-					DrawDebugSphere(GetWorld(), Loc, 30.f, 0, FColor::Blue, false, 1);
+					//DrawDebugSphere(GetWorld(), Loc, 30.f, 0, FColor::Blue, false, 1);
 					FCollisionQueryParams QueryParams;
 					FVector dir = player->GetActorLocation() - Loc;
 					dir.Normalize();
@@ -133,19 +133,19 @@ void AMyQuery::Tick(float DeltaTime)
 							);
 							if (bOneCheck)
 							{
-								DrawDebugLine(GetWorld(), Loc, Loc + rightVec * 100, FColor::Blue, false, 1);
+								//DrawDebugLine(GetWorld(), Loc, Loc + rightVec * 100, FColor::Blue, false, 1);
 							}
 							if (bTwoCheck)
 							{
-								DrawDebugLine(GetWorld(), Loc, Loc + leftVec * 100, FColor::Red, false, 1);
+								//DrawDebugLine(GetWorld(), Loc, Loc + leftVec * 100, FColor::Red, false, 1);
 							}
 							if (!(bOneCheck ^ bTwoCheck))
 							{
 								continue;
 							}
-							DrawDebugSphere(GetWorld(), Loc, 50.f, 0, FColor::Green, false, 1);
+							//DrawDebugSphere(GetWorld(), Loc, 50.f, 0, FColor::Green, false, 1);
 						}
-						DrawDebugSphere(GetWorld(), Loc, 60.f, 10, FColor::Green, false, 1);
+						//DrawDebugSphere(GetWorld(), Loc, 60.f, 10, FColor::Green, false, 1);
 						FHideLoc hideloc;
 						hideloc.Loc = Loc;
 						hideloc.bIsWall = bIsWall;
