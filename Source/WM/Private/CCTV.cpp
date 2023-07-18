@@ -1,5 +1,6 @@
 #include "CCTV.h"
 #include "MyPlayer.h"
+#include "AI_EnemyBase.h"
 #include "HackableActor.h"
 #include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
@@ -111,7 +112,7 @@ void ACCTV::TrackInteractable()
 
 		GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
 		
-		auto HitActor = HitResult.GetActor();
+		HitActor = HitResult.GetActor();
 		if (IsValid(HitActor))
 		{
 			FString ObjName;
@@ -128,8 +129,16 @@ void ACCTV::TrackInteractable()
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				HackableActor = Cast<AHackableActor>(HitActor);
 			}
-
+			else if (HitActor->IsA(AAI_EnemyBase::StaticClass()))
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				TrackedEnemy = Cast<AAI_EnemyBase>(HitActor);
+			}
 		}
+	}
+	else
+	{
+		HitActor = nullptr;
 	}
 }
 

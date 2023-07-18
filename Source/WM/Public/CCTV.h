@@ -38,11 +38,15 @@ public:
 //		TSubclassOf<class ACCTV> TrackedOtherCCTV;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float InteractionTime;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		AActor* HitActor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UPostProcessComponent* HackingTransition;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AHackableActor* HackableActor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AAI_EnemyBase* TrackedEnemy;
 
 protected:
 	virtual void BeginPlay() override;
