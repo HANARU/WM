@@ -82,6 +82,7 @@ public:
 	void CoverCheck(const FInputActionValue& value);
 	void Vault(const FInputActionValue& value);
 	void Run(const FInputActionValue& value);
+	void Stop(const FInputActionValue& value);
 	
 	UFUNCTION(BlueprintImplementableEvent, Category="Move")
 	void PlayStopMontage();
@@ -236,7 +237,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float ShootRange = 2000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float HorizontalRecoil = -0.3f;
+		float HorizontalRecoil = -0.1f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float VerticalRecoil = -0.5f;
+		float VerticalRecoil = -0.3f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gun")
+	bool isRifle = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gun")
+	bool isPistol = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gun")
+	bool isArmed = false;
+
+	UPROPERTY(EditDefaultsOnly, Category="Gun")
+	class UParticleSystem* FireEffect;
 };

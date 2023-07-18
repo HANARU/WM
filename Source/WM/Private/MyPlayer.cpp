@@ -23,6 +23,7 @@
 #include "AC_AI_Hp.h"
 #include <UMG/Public/Blueprint/UserWidget.h>
 #include <Components/PawnNoiseEmitterComponent.h>
+#include <Particles/ParticleSystem.h>
 
 
 AMyPlayer::AMyPlayer()
@@ -109,6 +110,13 @@ AMyPlayer::AMyPlayer()
 	{
 		FocusedInteractable = TempUI.Object;
 	}
+
+	ConstructorHelpers::FObjectFinder<UParticleSystem> TempParticle(TEXT("/Script/Engine.ParticleSystem'/Game/6_MISC/FX/Explosion/P_BulletEffect.P_BulletEffect'"));
+	if (TempParticle.Succeeded())
+	{
+		FireEffect = TempParticle.Object;
+	}
+
 }
 
 void AMyPlayer::BeginPlay()
@@ -164,7 +172,7 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AMyPlayer::Run);
 
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AMyPlayer::Run);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AMyPlayer::Stop);
 }
 
 void AMyPlayer::Move(const FInputActionValue& value)
@@ -396,9 +404,24 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 
 void AMyPlayer::Run(const FInputActionValue& value)
 {
-	if(Speed > WalkSpeed) Speed = WalkSpeed;
-	else Speed = RunSpeed;
+	if(Speed > WalkSpeed) 
+	{// 뛰고 있을 때 
+		Speed = WalkSpeed;
+		SpringArm->SocketOffset.Y = FMath::Lerp(0, 55 , 0.3);
+		SpringArm->TargetArmLength = 150;
 
+	}
+	else 
+	{// 걷고 있을 때 
+		Speed = RunSpeed;
+		SpringArm->SocketOffset.Y = FMath::Lerp(55, 0, 0.3);
+		SpringArm->TargetArmLength = 200;
+	}
+}
+
+void AMyPlayer::Stop(const FInputActionValue& value)
+{
+	Speed = WalkSpeed;
 }
 
 void AMyPlayer::CoverCheck(const FInputActionValue& value)
@@ -450,7 +473,7 @@ void AMyPlayer::InteractionSinglePress()
 	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
 	if (IsValid(HackableActor))
 	{
-		HackableActor->Action_Interact();
+		HackableActor->Action_Interact_Single();
 		HackableCount--;
 	}
 }
@@ -509,14 +532,20 @@ void AMyPlayer::Shoot()
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Fire"));
 	
 	FHitResult HitResult;
-	FVector StartLocation = ShootStartPoint->GetComponentLocation();
+	FVector StartLocation = Pistol->GetSocketLocation(FName("FirePosition"));
 	FVector EndLocation = PlayerCamera->GetComponentLocation() + PlayerCamera->GetForwardVector() * ShootRange;
 
-	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel6);
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
 	DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
 
-	AddControllerYawInput(HorizontalRecoil);
-	AddControllerPitchInput(VerticalRecoil);
+
+	// 반동
+	/*AddControllerYawInput(HorizontalRecoil);
+	AddControllerPitchInput(VerticalRecoil);*/
+
+	// 효과
+	//FVector firePosition = Pistol->GetSocketLocation(FName("FirePosition"));
+	//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect ,firePosition);
 
 
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
@@ -548,7 +577,7 @@ void AMyPlayer::ZoomIn()
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Zoom"));
 	isZooming = true;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
-
+	SpringArm->SetRelativeLocation(FVector(0,0,70));
 	bUseControllerRotationYaw = true;
 	//bUseControllerRotationPitch = true;
 }
@@ -557,6 +586,7 @@ void AMyPlayer::ZoomOut()
 {
 	isZooming = false;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
+	SpringArm->SetRelativeLocation(FVector(0,0,60));
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 }
