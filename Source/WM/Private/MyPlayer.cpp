@@ -146,7 +146,13 @@ void AMyPlayer::Tick(float DeltaTime)
 	TrackInteractable();
 	if(isCovering) Covering();
 	// 엄폐 시 Trace Line Collision을 만들어준다.
-	if(nowCovering) CoverMovement();
+	if(nowCovering) {
+		CoverMovement();
+		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 250, 5*DeltaTime);
+	}
+	else {
+		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 150, 5 * DeltaTime);
+	}
 
 	//<------------Control HackableCount--------------->//
 	FillHackableCount(DeltaTime);
@@ -289,7 +295,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 
 	// LineTrace 발사
 	// 입력 값
-	FVector Start = GetCapsuleComponent()->GetComponentLocation();
+	FVector Start = GetCapsuleComponent()->GetComponentLocation() - FVector(0,0,50);
 	StandUprototator = GetCapsuleComponent()->GetForwardVector();
 	FVector End = Start + GetCapsuleComponent()->GetForwardVector() * DistanceToObject;
 	TArray<AActor*> ActorsToIgnore;
@@ -404,24 +410,14 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 
 void AMyPlayer::Run(const FInputActionValue& value)
 {
-	if(Speed > WalkSpeed) 
-	{// 뛰고 있을 때 
-		Speed = WalkSpeed;
-		SpringArm->SocketOffset.Y = FMath::Lerp(0, 55 , 0.3);
-		SpringArm->TargetArmLength = 150;
-
-	}
-	else 
-	{// 걷고 있을 때 
-		Speed = RunSpeed;
-		SpringArm->SocketOffset.Y = FMath::Lerp(55, 0, 0.3);
-		SpringArm->TargetArmLength = 200;
-	}
+	if(nowCovering) Speed = 350.f;
+	else Speed = RunSpeed;
 }
 
 void AMyPlayer::Stop(const FInputActionValue& value)
 {
-	Speed = WalkSpeed;
+	if(nowCovering) Speed = 250.f;
+	else Speed = WalkSpeed;
 }
 
 void AMyPlayer::CoverCheck(const FInputActionValue& value)
@@ -510,7 +506,7 @@ void AMyPlayer::TrackInteractable()
 			OnInteraction(HitResult);
 		}
 		else {
-			OnInteraction(HitResult);
+			EndInteraction(HitResult);
 		}
 	}
 }
@@ -587,6 +583,11 @@ void AMyPlayer::ZoomOut()
 	isZooming = false;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
 	SpringArm->SetRelativeLocation(FVector(0,0,60));
+	
+	float deltaRotate = GetDeltaRotate();
+	UE_LOG(LogTemp,Warning,TEXT("%f"), deltaRotate)
+	if(FMath::Abs(deltaRotate)<90) this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw, 0));
+	else this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw +180, 0));
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 }
@@ -600,7 +601,7 @@ void AMyPlayer::Covering()
 	{
 		// 가까워진 값만큼 다시 초기화
 		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
-		GetCharacterMovement()->MaxWalkSpeed = 1000;
+		GetCharacterMovement()->MaxWalkSpeed = 600;
 		AddMovementInput(HitActorOrigin - GetMesh()->GetComponentLocation());
 		isCovering = true;
 	}
@@ -610,9 +611,9 @@ void AMyPlayer::Covering()
 		nowCovering = true;
 		if (CoverObjectNormal.Length() != 0)
 		{
-			this->SetActorRotation(FRotator(0,CoverObjectNormal.Rotation().Yaw,0));
-			//Rotation이 끝난 후 Normal Vector의 Orthogonal Vector을 만들어준다. For Movement
 			CoverObjectOrthogonal = FVector::CrossProduct(CoverObjectNormal, GetMesh()->GetUpVector());
+			this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw,0));
+			//Rotation이 끝난 후 Normal Vector의 Orthogonal Vector을 만들어준다. For Movement
 		}
 		GetCharacterMovement()->MaxWalkSpeed = 300;
 	}

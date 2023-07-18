@@ -25,6 +25,8 @@ AHackableActor_Bomb::AHackableActor_Bomb()
 	{
 		FXExplosion->SetTemplate(ExplosionAsset.Object);
 	}
+
+	InteractableWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractableWidget"));
 }
 
 void AHackableActor_Bomb::Action_Interact_Single()

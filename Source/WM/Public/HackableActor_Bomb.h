@@ -18,6 +18,8 @@ public:
 		class URadialForceComponent* RadialForceComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class USphereComponent* ExplosionAffectArea;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UWidgetComponent* InteractableWidget; 
 
 	virtual void Action_Interact_Single() override;
 
