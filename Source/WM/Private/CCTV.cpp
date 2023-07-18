@@ -114,7 +114,7 @@ void ACCTV::TrackInteractable()
 		GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
 		
 		HitActor = HitResult.GetActor();
-		if (IsValid(HitActor))
+		if (HitActor)
 		{
 			FString ObjName;
 			ObjName.Append("Current is ");
@@ -137,11 +137,13 @@ void ACCTV::TrackInteractable()
 				TrackedEnemy->CheckAIData();
 			}
 		}
+		else
+		{
+			HitActor = nullptr;
+			TrackedEnemy = nullptr;
+		}
 	}
-	else
-	{
-		HitActor = nullptr;
-	}
+	
 }
 
 void ACCTV::InteractStart_1Sec()
