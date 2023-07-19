@@ -76,6 +76,4 @@ public:
 	void SetDie();
 	UFUNCTION(BlueprintCallable)
 	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
-	UFUNCTION(BlueprintImplementableEvent)
-		void CheckAIData();
 };

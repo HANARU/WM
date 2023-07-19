@@ -18,6 +18,8 @@ public:
 		class USphereComponent* CollisionArea;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UStaticMeshComponent* BodyMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString Object_Num;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class AAI_EnemyBase* Enemy;

@@ -47,6 +47,10 @@ public:
 		class AHackableActor* HackableActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AAI_EnemyBase* TrackedEnemy;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bIsTrackingAI = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bIsTrackingObject = false;
 
 protected:
 	virtual void BeginPlay() override;

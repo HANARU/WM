@@ -16,6 +16,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int HackedAPCount = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		AActor* TrackedEnemy = nullptr;
+		class AAI_EnemyBase* TrackedEnemy = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AHackableActor* HackableActor;
 
 };

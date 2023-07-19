@@ -69,6 +69,11 @@ void ACCTV::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	TrackInteractable();
+
+	//FString BoolString;
+	//BoolString.Append("Tracking : ");
+	//BoolString.Append(UKismetStringLibrary::Conv_BoolToString(bIsTrackingSomething));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Green, BoolString);
 }
 
 void ACCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -129,21 +134,22 @@ void ACCTV::TrackInteractable()
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				HackableActor = Cast<AHackableActor>(HitActor);
+				bIsTrackingObject = true;
 			}
 			else if (HitActor->IsA(AAI_EnemyBase::StaticClass()))
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				TrackedEnemy = Cast<AAI_EnemyBase>(HitActor);
-				TrackedEnemy->CheckAIData();
+				bIsTrackingAI = true;
 			}
 		}
 		else
 		{
 			HitActor = nullptr;
-			TrackedEnemy = nullptr;
+			bIsTrackingAI = false;
+			bIsTrackingObject = false;
 		}
 	}
-	
 }
 
 void ACCTV::InteractStart_1Sec()
