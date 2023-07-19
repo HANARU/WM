@@ -70,10 +70,10 @@ void ACCTV::Tick(float DeltaTime)
 
 	TrackInteractable();
 
-	//FString BoolString;
-	//BoolString.Append("Tracking : ");
-	//BoolString.Append(UKismetStringLibrary::Conv_BoolToString(bIsTrackingSomething));
-	//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Green, BoolString);
+	/*FString BoolString;
+	BoolString.Append("Tracking : ");
+	BoolString.Append(UKismetStringLibrary::Conv_BoolToString(bIsTrackingAI));
+	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Green, BoolString);*/
 }
 
 void ACCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
