@@ -296,7 +296,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 	// LineTrace 발사
 	// 입력 값
 	FVector Start = GetCapsuleComponent()->GetComponentLocation() - FVector(0,0,90);
-	StandUprototator = GetCapsuleComponent()->GetForwardVector();
+	StandUprototator = GetCapsuleComponent()->GetComponentRotation();
 	FVector End = Start + GetCapsuleComponent()->GetForwardVector() * DistanceToObject;
 	TArray<AActor*> ActorsToIgnore;
 	FHitResult HitResult;
@@ -329,7 +329,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 			DisableInput(GEngine->GetFirstLocalPlayerController(GetWorld()));	
 			for(int i = 1; i<4; i++)
 			{
-				FVector VerticalStart = HitResult.Location + FVector(0, 0, VaultLimit) + GetActorForwardVector() * LineDelta * i;
+				FVector VerticalStart = HitResult.Location + FVector(0, 0, VaultLimit) + GetActorForwardVector() * LineDelta * pow(i,1.6);
 				FVector VerticalEnd = VerticalStart - FVector(0, 0, 1000);
 				bool VerticalHit = UKismetSystemLibrary::LineTraceSingle(
 					this,

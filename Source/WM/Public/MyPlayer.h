@@ -190,11 +190,11 @@ public:
 	float DistanceToObject = 70;
 	// 점프할 수 있는 한계 높이
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
-	float VaultLimit = 150;
+	float VaultLimit = 130;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
 	float LineDelta = 20;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Warp")
-	FVector StandUprototator; 
+	FRotator StandUprototator; 
 
 	// 뛰어넘을 수 있는가?
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Warp")
