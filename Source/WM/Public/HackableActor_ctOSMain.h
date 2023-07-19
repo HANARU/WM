@@ -16,7 +16,10 @@ public:
 		class UBoxComponent* Area;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool IsInArea = false;
+		bool IsInArea = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int LeftCTOSAP;
 
 public:
 	virtual void BeginPlay() override;
@@ -30,4 +33,7 @@ public:
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 		void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void TryHackingCTOS();
 };

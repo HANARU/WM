@@ -6,6 +6,8 @@ AHackableActor_ctOSMain::AHackableActor_ctOSMain()
 	Area = CreateDefaultSubobject<UBoxComponent>(TEXT("Area"));
 	Area->SetBoxExtent(FVector(128));
 	Area->SetupAttachment(RootComponent);
+
+	LeftCTOSAP = 0;
 }
 
 void AHackableActor_ctOSMain::BeginPlay()
@@ -28,6 +30,7 @@ void AHackableActor_ctOSMain::Action_Interact_Single()
 	if (IsInArea)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Interact Activated"));
+		TryHackingCTOS();
 	}
 }
 

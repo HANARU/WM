@@ -196,6 +196,8 @@ void ACCTV::InteractionSinglePress()
 void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerController)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Back2Player"));
+	bIsTrackingAI = false;
+	bIsTrackingObject = false;
 	PlayerController->SetViewTargetWithBlend(SinglePlayer, 0.5f);
 	HackingTransition->SetVisibility(true);
 	FTimerHandle TimerHandle;
