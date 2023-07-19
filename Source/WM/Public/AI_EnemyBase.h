@@ -64,7 +64,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	class UAI_EnemyAnimInstance* animins; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "USERAI")
-		FString AI_Num;
+	FString AI_Num;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class USoundCue* deathsound;
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn *OtherPawn);

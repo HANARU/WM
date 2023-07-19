@@ -250,7 +250,6 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 {
 	animins->StopAllMontages(.5);
 	Target = player;
-	player->isInCombat = true;
 	SeeingTimer = 1.0;
 	if (battComp->State == ECOMBAT::HIDDEN || battComp->State == ECOMBAT::HIDDENRUN) return;
 	bUseControllerRotationYaw = false;
@@ -268,6 +267,7 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 		}
 		battComp->CoverTimer = 3;
 		PawnSensing->SetPeripheralVisionAngle(90);
+		player->isInCombat++;
 		bIsBattle = true;
 	}
 	else
@@ -281,8 +281,9 @@ void AAI_EnemyBase::SetDie()
 	AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
 	if (player)
 	{
-		player->isInCombat = false;
+		player->isInCombat--;
 	}
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	for (UCapsuleComponent* capsule : Colcapsules)

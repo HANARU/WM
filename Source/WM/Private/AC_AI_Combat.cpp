@@ -208,6 +208,11 @@ void UAC_AI_Combat::StateHold()
 	if (StateTimer == 0)
 	{
 		StateChange(ECOMBAT::ATTACK);
+		AMyPlayer* player = Cast<AMyPlayer> (UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
+		if (player)
+		{
+			player->isInCombat--;
+		}
 		OwnerEnemy->TargetDir = FVector::ZeroVector;
 		OwnerEnemy->TargetLoc = FVector::ZeroVector;
 		OwnerEnemy->bIsBattle = false;
