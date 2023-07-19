@@ -223,7 +223,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Gun")
 		bool isZooming = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Gun")
-		bool isInCombat = false;
+		int isInCombat = 0;
 	
 	UFUNCTION(BlueprintCallable)
 		void Shoot();

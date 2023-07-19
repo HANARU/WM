@@ -585,9 +585,11 @@ void AMyPlayer::ZoomOut()
 	SpringArm->SetRelativeLocation(FVector(0,0,60));
 	
 	float deltaRotate = GetDeltaRotate();
-	UE_LOG(LogTemp,Warning,TEXT("%f"), deltaRotate)
-	if(FMath::Abs(deltaRotate)<90) this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw, 0));
-	else this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw +180, 0));
+	if(nowCovering)
+	{
+		if(FMath::Abs(deltaRotate)<90) this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw, 0));
+		else this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw +180, 0));
+	}
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 }
