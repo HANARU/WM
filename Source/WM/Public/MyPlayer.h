@@ -225,6 +225,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Gun")
 		int isInCombat = 0;
 	
+	UFUNCTION()
+		FVector CameraLineTrace();
 	UFUNCTION(BlueprintCallable)
 		void Shoot();
 	UFUNCTION(BlueprintCallable)

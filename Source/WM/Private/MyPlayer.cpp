@@ -214,7 +214,7 @@ void AMyPlayer::Move(const FInputActionValue& value)
 		// W,S 입력, 엄폐시 W,S 입력이 주를 이룬다.
 		// 카메라 방향과 맞방향
 		
-		if (FMath::Abs(deltaRotate)<45)
+		if (FMath::Abs(deltaRotate)<35)
 		{
 			if(canGoDetect)
 			{
@@ -240,7 +240,7 @@ void AMyPlayer::Move(const FInputActionValue& value)
 			
 		}
 		// 카메라 방향과 역방향
-		else if (FMath::Abs(deltaRotate) >135) {
+		else if (FMath::Abs(deltaRotate) >145) {
 
 			if (canGoDetect)
 			{
@@ -295,7 +295,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 
 	// LineTrace 발사
 	// 입력 값
-	FVector Start = GetCapsuleComponent()->GetComponentLocation() - FVector(0,0,50);
+	FVector Start = GetCapsuleComponent()->GetComponentLocation() - FVector(0,0,90);
 	StandUprototator = GetCapsuleComponent()->GetForwardVector();
 	FVector End = Start + GetCapsuleComponent()->GetForwardVector() * DistanceToObject;
 	TArray<AActor*> ActorsToIgnore;
@@ -511,6 +511,38 @@ void AMyPlayer::TrackInteractable()
 	}
 }
 
+FVector AMyPlayer::CameraLineTrace()
+{
+	FVector CameraLineTraceStart = PlayerCamera->GetComponentLocation();
+	FVector CameraLineTraceEnd = PlayerCamera->GetComponentLocation() + PlayerCamera->GetForwardVector() * ShootRange;
+	TArray<AActor*> ActorsToIgnore;
+
+	// Line Trace 출력값
+	FHitResult LineHitResult;
+	FVector EndLocation = PlayerCamera->GetComponentLocation() + PlayerCamera->GetForwardVector() * ShootRange;
+
+	// LineTrace 
+	bool Hit = UKismetSystemLibrary::LineTraceSingle(
+		this,
+		CameraLineTraceStart,
+		CameraLineTraceEnd,
+		ETraceTypeQuery::TraceTypeQuery4,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		LineHitResult,
+		true
+	);
+
+	if (Hit)
+	{// 적이 맞으면 적의 해당 위치가 EndLocation이된다.
+		EndLocation = LineHitResult.Location;
+	}
+
+	return EndLocation;
+
+}
+
 //void AMyPlayer::OnInteraction(FHitResult HitActor)
 //{
 //	//CCTV = Cast<ACCTV>(HitActor.GetActor());
@@ -525,14 +557,15 @@ void AMyPlayer::TrackInteractable()
 
 void AMyPlayer::Shoot()
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Fire"));
-	
+	//LineTrace 조정
+	// Line Trace 입력 값	
 	FHitResult HitResult;
 	FVector StartLocation = Pistol->GetSocketLocation(FName("FirePosition"));
-	FVector EndLocation = PlayerCamera->GetComponentLocation() + PlayerCamera->GetForwardVector() * ShootRange;
+	FVector EndLocation = CameraLineTrace();
+
 
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
-	DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
+	//DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
 
 
 	// 반동
