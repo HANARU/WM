@@ -543,18 +543,6 @@ FVector AMyPlayer::CameraLineTrace()
 
 }
 
-//void AMyPlayer::OnInteraction(FHitResult HitActor)
-//{
-//	//CCTV = Cast<ACCTV>(HitActor.GetActor());
-//	if (FocusedInteractable && FocusedInteractable->IsInViewport())
-//	{
-//		return;
-//	}
-//	else if(FocusedInteractable && !(FocusedInteractable->IsInViewport())) {
-//		FocusedInteractable->AddToViewport();
-//	}
-//}
-
 void AMyPlayer::Shoot()
 {
 	//LineTrace Á¶Á¤

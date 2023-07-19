@@ -27,6 +27,9 @@ public:
 		class UStaticMeshComponent* CameraBody;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UWidgetComponent* InteractableWidget; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AMyPlayer* Player;
 //		TSubclassOf<class AMyPlayer> Player;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

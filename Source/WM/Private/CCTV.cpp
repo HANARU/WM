@@ -10,6 +10,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetStringLibrary.h"
+#include <UMG/Public/Components/WidgetComponent.h>
 
 ACCTV::ACCTV()
 {
@@ -56,6 +57,10 @@ ACCTV::ACCTV()
 	{
 		CameraBody->SetStaticMesh(BodyMesh.Object);
 	}
+
+	InteractableWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractableWidget"));
+	InteractableWidget->SetupAttachment(SpringArm);
+	
 }
 
 void ACCTV::BeginPlay()
