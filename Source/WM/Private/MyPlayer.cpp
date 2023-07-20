@@ -112,7 +112,7 @@ AMyPlayer::AMyPlayer()
 		FocusedInteractable = TempUI.Object;
 	}
 
-	ConstructorHelpers::FObjectFinder<UParticleSystem> TempParticle(TEXT("/Script/Engine.ParticleSystem'/Game/6_MISC/FX/Explosion/P_BulletEffect.P_BulletEffect'"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> TempParticle(TEXT("/Script/Engine.ParticleSystem'/Game/6_MISC/FX/MuzzleFire/FX_Monsters/FX_Monster_Chicken/P_ChickenMaster_MuzzleFlash_01.P_ChickenMaster_MuzzleFlash_01'"));
 	if (TempParticle.Succeeded())
 	{
 		FireEffect = TempParticle.Object;
@@ -568,8 +568,8 @@ void AMyPlayer::Shoot()
 	AddControllerPitchInput(VerticalRecoil);*/
 
 	// È¿°ú
-	//FVector firePosition = Pistol->GetSocketLocation(FName("FirePosition"));
-	//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect ,firePosition);
+	FVector firePosition = Pistol->GetSocketLocation(FName("FirePosition"));
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, firePosition);
 
 
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
