@@ -54,6 +54,10 @@ public:
 		bool bIsTrackingAI = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bIsTrackingObject = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bIsTrackingCCTV = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString Object_Num = TEXT("8");
 
 protected:
 	virtual void BeginPlay() override;

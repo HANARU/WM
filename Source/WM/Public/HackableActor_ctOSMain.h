@@ -36,4 +36,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void TryHackingCTOS();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void AccessCutScene();
 };

@@ -19,5 +19,7 @@ public:
 		class AAI_EnemyBase* TrackedEnemy = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AHackableActor* HackableActor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class ACCTV* TrackedCCTV;
 
 };
