@@ -69,6 +69,8 @@ public:
 	class USoundCue* firesound;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class USoundCue* bulletsound;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class UParticleSystem* fireEffect;
 public:
 	UFUNCTION(BlueprintCallable)
 	void Fire();

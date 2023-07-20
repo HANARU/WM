@@ -21,6 +21,7 @@ void UAI_EnemyAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		XYVec.Normalize();
 		MovementDir = CalculateDirection(XYVec, Owner->GetActorForwardVector().Rotation());
 		bIsCombat = Owner->bIsBattle;
+		hitTimer = Owner->HitTimer;
 		bIsSit = Owner->battComp->bIsSit;
 		if (Owner->TargetLoc != FVector::ZeroVector)
 		{

@@ -14,6 +14,7 @@
 #include "AI_EnemyAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "AC_AI_Hp.h"
+#include <Components/PawnNoiseEmitterComponent.h>
 // Sets default values
 AAI_EnemyBase::AAI_EnemyBase()
 {
@@ -112,7 +113,7 @@ AAI_EnemyBase::AAI_EnemyBase()
 	firepoint->SetRelativeTransform(tempTrans);
 
 	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
-	PawnSensing->SetPeripheralVisionAngle(80);
+	PawnSensing->SetPeripheralVisionAngle(60);
 	GetCharacterMovement()->MaxWalkSpeed = 200;
 
 	if (tempSkel.Succeeded())
@@ -121,6 +122,9 @@ AAI_EnemyBase::AAI_EnemyBase()
 		GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 		GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
 	}
+
+	PawnNoiseEmitter = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
+	PawnNoiseEmitter->bAutoActivate = true;
 }
 
 void AAI_EnemyBase::PostInitializeComponents()
@@ -233,6 +237,10 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume)
 {
 	if (bIsdie) return;
+	if (OtherPawn->IsA(AAI_EnemyBase::StaticClass()))
+	{
+		PRINT_LOG(TEXT("shotsound"));
+	}
 	if (Volume > .5)
 	{
 		PRINT_LOG(TEXT("hearsound"));
@@ -248,6 +256,7 @@ void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float
 
 void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 {
+	if (bIsdie) return;
 	animins->StopAllMontages(.5);
 	Target = player;
 	SeeingTimer = 1.0;
@@ -278,10 +287,12 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 
 void AAI_EnemyBase::SetDie()
 {
+	if (bIsdie) return;
 	AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
-	if (player)
+	if (player && bIsBattle)
 	{
 		player->isInCombat--;
+		PRINT_LOG(TEXT("%d"), player->isInCombat);
 	}
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
 	GetMesh()->SetSimulatePhysics(true);

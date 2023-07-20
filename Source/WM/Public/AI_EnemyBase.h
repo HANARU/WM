@@ -67,6 +67,10 @@ public:
 	FString AI_Num;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class USoundCue* deathsound;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class USoundCue* hitsound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
+	class UPawnNoiseEmitterComponent* PawnNoiseEmitter;
 public:
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn *OtherPawn);

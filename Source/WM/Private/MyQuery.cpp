@@ -110,7 +110,7 @@ void AMyQuery::Tick(float DeltaTime)
 						FVector boxextent;
 						HitActor->GetActorBounds(false, origin, boxextent);
 						bool bIsWall = (boxextent.Z > 70);
-						PRINT_LOG(TEXT("%f"), boxextent.Z);
+						//PRINT_LOG(TEXT("%f"), boxextent.Z);
 						if (bIsWall)
 						{
 							FHitResult hitoneresult;

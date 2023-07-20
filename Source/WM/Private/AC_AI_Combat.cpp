@@ -15,6 +15,7 @@
 #include "AIModule/Classes/Perception/PawnSensingComponent.h"
 #include "Sound/SoundWave.h"
 #include "Sound/SoundCue.h"
+#include "Chaos/Rotation.h"
 // Sets default values for this component's properties
 UAC_AI_Combat::UAC_AI_Combat()
 {
@@ -73,6 +74,7 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 
 void UAC_AI_Combat::Fire()
 {
+	if (OwnerEnemy->bIshit) return;
 	if (OwnerEnemy->firepoint && FireTimer == 0 && !OwnerEnemy->TargetBones.IsEmpty())
 	{
 		FHitResult HitResult;
@@ -81,6 +83,8 @@ void UAC_AI_Combat::Fire()
 		FName bonename = OwnerEnemy->TargetBones[FMath::RandRange(0, OwnerEnemy->TargetBones.Num() - 1)];
 		FVector boneloc = OwnerEnemy->Target->GetMesh()->GetBoneLocation(bonename);
 		firepoint = boneloc;
+		if(OwnerEnemy->Target)
+		OwnerEnemy->Target->MakeNoise(1., nullptr, OwnerEnemy->GetActorLocation(), 1000.);
 		float distance = FVector::Distance(OwnerEnemy->GetActorLocation(), boneloc);
 		float maxrand;
 		if (FMath::RandRange(0, 100) > 5)
@@ -95,12 +99,17 @@ void UAC_AI_Combat::Fire()
 		randvec.Normalize();
 		boneloc = boneloc + randvec * maxrand - OwnerEnemy->GetActorLocation();
 		boneloc.Normalize();
+		FTransform trans;
+		trans.SetLocation(OwnerEnemy->firepoint->GetComponentLocation());
+		trans.SetRotation(FQuat::MakeFromRotator(boneloc.Rotation()));
+		trans.SetScale3D(FVector(.05, .1, .05));
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), fireEffect, trans);
 		boneloc = OwnerEnemy->GetActorLocation() + boneloc * 5000;
 		//DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Blue, false, .1);USoundBase
 		GetWorld()->LineTraceSingleByChannel(HitResult, OwnerEnemy->firepoint->GetComponentLocation(), boneloc, ECC_GameTraceChannel6, QueryParams);
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), firesound, OwnerEnemy->firepoint->GetComponentLocation());
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), bulletsound, firepoint, FMath::FRandRange(0., 1.));
-		DrawDebugLine(GetWorld(), OwnerEnemy->firepoint->GetComponentLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
+		DrawDebugLine(GetWorld(), OwnerEnemy->firepoint->GetComponentLocation(), HitResult.Location, FColor::Red, false, -1.f, 0, 2.0f);
 		OwnerEnemy->animins->Montage_Play(OwnerEnemy->animins->fireMontage);
 		if (HitResult.bBlockingHit)
 		{

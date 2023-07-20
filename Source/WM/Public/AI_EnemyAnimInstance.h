@@ -32,6 +32,8 @@ public :
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	bool bIsSit;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
+	float hitTimer;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	float aimDir;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	float targetaimDir;
