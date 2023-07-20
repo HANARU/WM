@@ -113,6 +113,7 @@ public:
 		float CurrentTime; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		UUserWidget* FocusedInteractable;
+	class UWidgetComponent* CCTVUi;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UPostProcessComponent* HackingTransition;

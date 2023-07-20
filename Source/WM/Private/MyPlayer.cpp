@@ -24,6 +24,7 @@
 #include <UMG/Public/Blueprint/UserWidget.h>
 #include <Components/PawnNoiseEmitterComponent.h>
 #include <Particles/ParticleSystem.h>
+#include <UMG/Public/Components/WidgetComponent.h>
 
 
 AMyPlayer::AMyPlayer()
@@ -504,9 +505,15 @@ void AMyPlayer::TrackInteractable()
 			CCTV = Cast<ACCTV>(HitResult.GetActor());
 			HackableActor = Cast<AHackableActor>(HitResult.GetActor());
 			OnInteraction(HitResult);
+			if(CCTV)
+			{ 
+				CCTVUi = CCTV->InteractableWidget;
+				CCTVUi->SetVisibility(true);
+			}
 		}
 		else {
 			EndInteraction(HitResult);
+			if (CCTVUi) CCTVUi->SetVisibility(false);
 		}
 	}
 }
@@ -693,7 +700,7 @@ void AMyPlayer::CoverMovement()
 	TArray<AActor*> ActorsToIgnore;
 
 	// Box Trace ÀÔ·Â °ª
-	FVector TraceStart = GetMesh()->GetComponentLocation() + GetMesh()->GetRightVector() * 30;
+	FVector TraceStart = GetMesh()->GetComponentLocation() + GetMesh()->GetRightVector() * 70;
 	FRotator TraceOrient = UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal);
 	FVector HalfSize = FVector(8,72,32);
 
