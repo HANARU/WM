@@ -436,8 +436,8 @@ void AMyPlayer::CoverCheck(const FInputActionValue& value)
 float AMyPlayer::InteractStart_1Sec()
 {
 	FString InteractionTimeString = FString::SanitizeFloat(InteractionTime);
-	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, TEXT("InteractionStart"));
-	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);
+	/*GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, TEXT("InteractionStart"));
+	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);*/
 
 	if (InteractionTime > 1.f)
 	{
@@ -462,12 +462,12 @@ float AMyPlayer::InteractStart_1Sec()
 void AMyPlayer::InteractEnd_1Sec()
 {
 	InteractionTime = 0.f;
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("InteractionEnd"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("InteractionEnd"));
 }
 
 void AMyPlayer::InteractionSinglePress()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
 	if (IsValid(HackableActor))
 	{
 		HackableActor->Action_Interact_Single();
@@ -500,7 +500,7 @@ void AMyPlayer::TrackInteractable()
 		if (IsValid(HitResult.GetActor()))
 		{
 			FString ObjName = HitResult.GetActor()->GetName();
-			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+			//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 
 			CCTV = Cast<ACCTV>(HitResult.GetActor());
 			HackableActor = Cast<AHackableActor>(HitResult.GetActor());
@@ -569,20 +569,20 @@ void AMyPlayer::Shoot()
 
 	// È¿°ú
 	FVector firePosition = Pistol->GetSocketLocation(FName("FirePosition"));
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, firePosition);
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, firePosition, (EndLocation - StartLocation).Rotation(), FVector(0.05));
 
 
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
 	if(IsValid(Enemy))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, HitResult.GetComponent()->GetName());
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, HitResult.GetComponent()->GetName());
 		if (HitResult.GetComponent()->GetName() == "cap_head")
 		{
 			Enemy->SetDie();
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
 
 			Enemy->SetAttack(this);
 			if (Enemy->hpComp)

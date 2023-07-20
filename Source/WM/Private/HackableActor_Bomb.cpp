@@ -40,7 +40,7 @@ void AHackableActor_Bomb::Action_Interact_Single()
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this]()->void
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Destroy!!"));
+			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Destroy!!"));
 			Destroy();
 		}), 2.f, false);
 }
@@ -67,7 +67,7 @@ void AHackableActor_Bomb::BeginPlay()
 void AHackableActor_Bomb::OnOverlapBegin(UPrimitiveComponent* selfComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	FString ObjName = otherActor->GetName();
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, ObjName);
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, ObjName);
 	if (otherActor->IsA(AAI_EnemyBase::StaticClass()))
 	{
 		Enemy = Cast<AAI_EnemyBase>(otherActor);

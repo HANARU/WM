@@ -132,19 +132,19 @@ void ACCTV::TrackInteractable()
 
 			if (HitActor->IsA(ACCTV::StaticClass()))
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				TrackedOtherCCTV = Cast<ACCTV>(HitActor);
 				bIsTrackingCCTV = true;
 			}
 			else if (HitActor->IsA(AHackableActor::StaticClass()))
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				HackableActor = Cast<AHackableActor>(HitActor);
 				bIsTrackingObject = true;
 			}
 			else if (HitActor->IsA(AAI_EnemyBase::StaticClass()))
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				TrackedEnemy = Cast<AAI_EnemyBase>(HitActor);
 				bIsTrackingAI = true;
 			}
@@ -162,7 +162,7 @@ void ACCTV::TrackInteractable()
 void ACCTV::InteractStart_1Sec()
 {
 	FString InteractionTimeString = FString::SanitizeFloat(InteractionTime);
-	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);
+	//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);
 
 	if (InteractionTime > 1.f)
 	{
@@ -170,7 +170,7 @@ void ACCTV::InteractStart_1Sec()
 		if (IsValid(TrackedOtherCCTV))
 		{
 			TrackedOtherCCTV->ActivateCCTV();
-			GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, TEXT("Move to Other Camera"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, TEXT("Move to Other Camera"));
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			bIsUsing = false;
 		}
@@ -188,12 +188,12 @@ void ACCTV::InteractStart_1Sec()
 void ACCTV::InteractEnd_1Sec()
 {
 	InteractionTime = 0.f;
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Second Reset"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Second Reset"));
 }
 
 void ACCTV::InteractionSinglePress()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
 	if (IsValid(HackableActor))
 	{
 		HackableActor->Action_Interact_Single();

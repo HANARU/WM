@@ -21,7 +21,7 @@ void AHackableActor_ctOSMain::Tick(float DeltaTime)
 {
 	if (IsInArea)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Magenta, TEXT("Overlap on ctOS Main"));
+		//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Magenta, TEXT("Overlap on ctOS Main"));
 	}
 }
 
@@ -29,7 +29,7 @@ void AHackableActor_ctOSMain::Action_Interact_Single()
 {
 	if (IsInArea)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Interact Activated"));
+		//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Interact Activated"));
 		TryHackingCTOS();
 	}
 }
