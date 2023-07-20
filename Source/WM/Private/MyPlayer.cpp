@@ -599,6 +599,7 @@ void AMyPlayer::Shoot()
 void AMyPlayer::ZoomIn()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Zoom"));
+	SpringArm->bEnableCameraLag = false;
 	isZooming = true;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
 	SpringArm->SetRelativeLocation(FVector(0,0,70));
@@ -608,6 +609,7 @@ void AMyPlayer::ZoomIn()
 
 void AMyPlayer::ZoomOut()
 {
+	SpringArm->bEnableCameraLag = true;
 	isZooming = false;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
 	SpringArm->SetRelativeLocation(FVector(0,0,60));
