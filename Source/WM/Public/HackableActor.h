@@ -1,11 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "HackableActor.generated.h"
 
 UCLASS()
-class WM_API AHackableActor : public AActor
+class WM_API AHackableActor : public APawn
 {
 	GENERATED_BODY()
 	
@@ -20,6 +20,10 @@ public:
 		class UStaticMeshComponent* BodyMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FString Object_Num;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bNeed2Subtract = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)		// False : 0.5Sec, True : Single
+		bool bIsSinglePress = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class AAI_EnemyBase* Enemy;
@@ -32,6 +36,10 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	virtual void Action_Interact_Single() {}
+
+	virtual void Action_Interact_Second(float Second) {}
 
 };

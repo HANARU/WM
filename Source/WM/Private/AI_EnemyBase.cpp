@@ -7,6 +7,7 @@
 #include "AIModule/Classes/AIController.h"
 #include "AIModule/Classes/Blueprint/AIBlueprintHelperLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "AC_AI_NonCombat.h"
 #include "AC_AI_Combat.h"
 #include "../WM.h"
@@ -294,7 +295,7 @@ void AAI_EnemyBase::SetDie()
 		player->isInCombat--;
 		PRINT_LOG(TEXT("%d"), player->isInCombat);
 	}
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	for (UCapsuleComponent* capsule : Colcapsules)

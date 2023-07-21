@@ -59,6 +59,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* RunAction;
+
 	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* MouseLeftClick;
 
@@ -143,6 +144,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AHackableActor* HackableActor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AHackableActor_CCTV* HackedCCTV;
 
 		
 

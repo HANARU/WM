@@ -23,13 +23,15 @@ AHackableActor::AHackableActor()
 void AHackableActor::BeginPlay()
 {
 	Super::BeginPlay();
-	//CollisionArea->OnComponentBeginOverlap.AddDynamic(this, &AHackableActor::OnOverlapBegin);
-
 }
 
 void AHackableActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AHackableActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
 
 }
 

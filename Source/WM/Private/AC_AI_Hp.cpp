@@ -6,6 +6,7 @@
 #include "AI_EnemyAnimInstance.h"
 #include "../WM.h"
 #include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UAC_AI_Hp::UAC_AI_Hp()

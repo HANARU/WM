@@ -3,7 +3,7 @@
 #include "CCTV.h"
 #include "AI_EnemyBase.h"
 #include "HackableActor.h"
-#include "InteractableObject.h"
+#include "HackableActor_CCTV.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Controller.h"
@@ -144,7 +144,6 @@ void AMyPlayer::Tick(float DeltaTime)
 	// 달리기 <-> 걷기 전환시 디테일 
 	GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(GetCharacterMovement()->MaxWalkSpeed, Speed, 5*DeltaTime);
 
-	TrackInteractable();
 	if(isCovering) Covering();
 	// 엄폐 시 Trace Line Collision을 만들어준다.
 	if(nowCovering) {
@@ -155,10 +154,10 @@ void AMyPlayer::Tick(float DeltaTime)
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 150, 5 * DeltaTime);
 	}
 
-	//<------------Control HackableCount--------------->//
+	//<------------About Hacking--------------->//
 	FillHackableCount(DeltaTime);
 
-
+	TrackInteractable();
 }
 
 void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -421,23 +420,22 @@ void AMyPlayer::Stop(const FInputActionValue& value)
 	else Speed = WalkSpeed;
 }
 
-void AMyPlayer::CoverCheck(const FInputActionValue& value)
-{	
-	for (int i = 0; i < 3; i++)
+void AMyPlayer::FillHackableCount(float DeltaTime)
+{
+	CurrentTime += DeltaTime;
+
+	if (CurrentTime > FillHackableCountTime && HackableCount < HackableMaxCount)
 	{
-		bool RHit = ConverLineTrace(i*LineTraceDegree);
-		// 충돌체가 감지되면 LineTrace 중지
-		if (RHit) break;
-		bool LHit = ConverLineTrace(-i*LineTraceDegree);
-		if(LHit) break;
+		HackableCount++;
+		CurrentTime = 0;
 	}
 }
 
 float AMyPlayer::InteractStart_1Sec()
 {
 	FString InteractionTimeString = FString::SanitizeFloat(InteractionTime);
-	/*GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, TEXT("InteractionStart"));
-	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);*/
+	//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, TEXT("InteractionStart"));
+	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);
 
 	if (InteractionTime > 1.f)
 	{
@@ -471,18 +469,10 @@ void AMyPlayer::InteractionSinglePress()
 	if (IsValid(HackableActor))
 	{
 		HackableActor->Action_Interact_Single();
-		HackableCount--;
-	}
-}
-
-void AMyPlayer::FillHackableCount(float DeltaTime)
-{
-	CurrentTime += DeltaTime;
-
-	if (CurrentTime > FillHackableCountTime && HackableCount<HackableMaxCount)
-	{
-		HackableCount++;
-		CurrentTime = 0;
+		if (HackableActor->bNeed2Subtract)			// 폭발물, 프로텍터 사용 시
+		{
+			HackableCount--;
+		}
 	}
 }
 
@@ -500,20 +490,30 @@ void AMyPlayer::TrackInteractable()
 		if (IsValid(HitResult.GetActor()))
 		{
 			FString ObjName = HitResult.GetActor()->GetName();
-			//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+			ObjName.Append("Current is ");
+			ObjName.Append(HitResult.GetActor()->GetName());
+			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 
-			CCTV = Cast<ACCTV>(HitResult.GetActor());
-			HackableActor = Cast<AHackableActor>(HitResult.GetActor());
-			OnInteraction(HitResult);
-			if(CCTV)
-			{ 
-				CCTVUi = CCTV->InteractableWidget;
-				CCTVUi->SetVisibility(true);
+			if (HitResult.GetActor()->IsA(ACCTV::StaticClass()))
+			{
+				CCTV = Cast<ACCTV>(HitResult.GetActor());
 			}
-		}
-		else {
-			EndInteraction(HitResult);
-			if (CCTVUi) CCTVUi->SetVisibility(false);
+
+			if (HitResult.GetActor()->IsA(AHackableActor::StaticClass()))
+			{
+				HackableActor = Cast<AHackableActor>(HitResult.GetActor());
+				//CCTVUi = HackedCCTV->InteractableWidget;
+				//CCTVUi->SetVisibility(true);
+			}
+			else if (HitResult.GetActor()->IsA(AHackableActor_CCTV::StaticClass()))
+			{
+				HackedCCTV = Cast<AHackableActor_CCTV>(HitResult.GetActor());
+			}
+			/*else
+			{
+				EndInteraction(HitResult);
+				if (CCTVUi)	CCTVUi->SetVisibility(false);
+			}*/
 		}
 	}
 }
@@ -622,6 +622,18 @@ void AMyPlayer::ZoomOut()
 	}
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
+}
+
+void AMyPlayer::CoverCheck(const FInputActionValue& value)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		bool RHit = ConverLineTrace(i * LineTraceDegree);
+		// 충돌체가 감지되면 LineTrace 중지
+		if (RHit) break;
+		bool LHit = ConverLineTrace(-i * LineTraceDegree);
+		if (LHit) break;
+	}
 }
 
 void AMyPlayer::Covering()

@@ -1,8 +1,7 @@
-#include "CCTV.h"
+#include "HackableActor_CCTV.h"
 #include "MyPlayer.h"
 #include "WM_Instance.h"
 #include "AI_EnemyBase.h"
-#include "HackableActor.h"
 #include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -12,12 +11,11 @@
 #include "Kismet/KismetStringLibrary.h"
 #include <UMG/Public/Components/WidgetComponent.h>
 
-ACCTV::ACCTV()
+AHackableActor_CCTV::AHackableActor_CCTV()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	BasePosition = CreateDefaultSubobject<USceneComponent>(TEXT("Base"));
-	RootComponent = BasePosition;
+	bIsSinglePress = false;
 
 	CameraSupport = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CameraSupport"));
 	CameraSupport->SetupAttachment(RootComponent);
@@ -47,47 +45,39 @@ ACCTV::ACCTV()
 	HackingTransition->SetVisibility(false);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> SupportMesh(TEXT("/Script/Engine.StaticMesh'/Game/ModernCity/Meshes/SM_MSecurityCamera_B_Support.SM_MSecurityCamera_B_Support'"));
-	ConstructorHelpers::FObjectFinder<UStaticMesh> BodyMesh(TEXT("/Script/Engine.StaticMesh'/Game/ModernCity/Meshes/SM_MSecurityCamera_B.SM_MSecurityCamera_B'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> CameraMesh(TEXT("/Script/Engine.StaticMesh'/Game/ModernCity/Meshes/SM_MSecurityCamera_B.SM_MSecurityCamera_B'"));
 
 	if (SupportMesh.Succeeded())
 	{
 		CameraSupport->SetStaticMesh(SupportMesh.Object);
 	}
-	if (BodyMesh.Succeeded())
+	if (CameraMesh.Succeeded())
 	{
-		CameraBody->SetStaticMesh(BodyMesh.Object);
+		CameraBody->SetStaticMesh(CameraMesh.Object);
 	}
 
 	InteractableWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractableWidget"));
 	InteractableWidget->SetupAttachment(SpringArm);
-	
 }
 
-void ACCTV::BeginPlay()
+void AHackableActor_CCTV::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-void ACCTV::Tick(float DeltaTime)
+void AHackableActor_CCTV::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	TrackInteractable();
-
-	/*FString BoolString;
-	BoolString.Append("Tracking : ");
-	BoolString.Append(UKismetStringLibrary::Conv_BoolToString(bIsTrackingAI));
-	GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Green, BoolString);*/
 }
 
-void ACCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AHackableActor_CCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
-void ACCTV::ActivateCCTV()
+void AHackableActor_CCTV::ActivateCCTV()
 {
 	bIsUsing = true;
 	CollisionArea->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -100,17 +90,16 @@ void ACCTV::ActivateCCTV()
 
 	FTimerHandle TimerHandle;
 
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACCTV::PossessCCTV, 0.55f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AHackableActor_CCTV::PossessCCTV, 0.55f, false);
 }
 
-void ACCTV::PossessCCTV()
+void AHackableActor_CCTV::PossessCCTV()
 {
 	GetWorld()->GetFirstPlayerController()->Possess(this);
 	HackingTransition->SetVisibility(false);
-	//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, TEXT("Possessed CCTV"));
 }
 
-void ACCTV::TrackInteractable()
+void AHackableActor_CCTV::TrackInteractable()
 {
 	if (bIsUsing)
 	{
@@ -122,7 +111,7 @@ void ACCTV::TrackInteractable()
 		FVector EndLocation = StartLocation + Camera->GetForwardVector() * Distance;
 
 		GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
-		
+
 		HitActor = HitResult.GetActor();
 		if (HitActor)
 		{
@@ -130,18 +119,18 @@ void ACCTV::TrackInteractable()
 			ObjName.Append("Current is ");
 			ObjName.Append(HitActor->GetName());
 
-			if (HitActor->IsA(ACCTV::StaticClass()))
+			if (HitActor->IsA(AHackableActor::StaticClass()) && HitActor != this)
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
-				TrackedOtherCCTV = Cast<ACCTV>(HitActor);
-				bIsTrackingCCTV = true;
-			}
-			else if (HitActor->IsA(AHackableActor::StaticClass()))
-			{
-				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
-				HackableActor = Cast<AHackableActor>(HitActor);
+				TrackedOtherCCTV = Cast<AHackableActor_CCTV>(HitActor);
 				bIsTrackingObject = true;
 			}
+			else if (HitActor->IsA(AHackableActor_CCTV::StaticClass()))
+			{
+				HackableActor = Cast<AHackableActor_CCTV>(HitActor);
+				bIsTrackingCCTV = true;
+			}
+
 			else if (HitActor->IsA(AAI_EnemyBase::StaticClass()))
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
@@ -159,7 +148,7 @@ void ACCTV::TrackInteractable()
 	}
 }
 
-void ACCTV::InteractStart_1Sec()
+void AHackableActor_CCTV::InteractStart_1Sec()
 {
 	FString InteractionTimeString = FString::SanitizeFloat(InteractionTime);
 	//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Blue, InteractionTimeString);
@@ -167,9 +156,8 @@ void ACCTV::InteractStart_1Sec()
 	if (InteractionTime > 1.f)
 	{
 		InteractionTime = 0.f;
-		if (IsValid(TrackedOtherCCTV))
+		if (IsValid(HackableActor))
 		{
-			TrackedOtherCCTV->ActivateCCTV();
 			//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, TEXT("Move to Other Camera"));
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			bIsUsing = false;
@@ -185,24 +173,21 @@ void ACCTV::InteractStart_1Sec()
 	}
 }
 
-void ACCTV::InteractEnd_1Sec()
+void AHackableActor_CCTV::InteractEnd_1Sec()
 {
 	InteractionTime = 0.f;
-	//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Second Reset"));
 }
 
-void ACCTV::InteractionSinglePress()
+void AHackableActor_CCTV::InteractionSinglePress()
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Single Press"));
-	if (IsValid(HackableActor))
+	if (IsValid(HackableActor) && TrackedOtherCCTV == nullptr)
 	{
 		HackableActor->Action_Interact_Single();
 	}
 }
 
-void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerController)
+void AHackableActor_CCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerController)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, TEXT("Back2Player"));
 	bIsTrackingAI = false;
 	bIsTrackingObject = false;
 	bIsTrackingCCTV = false;
@@ -216,7 +201,6 @@ void ACCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerContro
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			GetWorld()->GetFirstPlayerController()->Possess(SinglePlayer);
 			HackingTransition->SetVisibility(false);
-			
+
 		}), 0.55f, false);
 }
-
