@@ -155,7 +155,7 @@ void AMyPlayer::Tick(float DeltaTime)
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 250, 5*DeltaTime);
 	}
 	else {
-		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 150, 5 * DeltaTime);
+		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 150, 5*DeltaTime);
 	}
 
 
@@ -219,15 +219,27 @@ void AMyPlayer::Move(const FInputActionValue& value)
 		{
 			if(canGoDetect)
 			{
+				if (MovementVector.Y > 0) {
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal));
+				}
+				else if (MovementVector.Y < 0) {
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(-CoverObjectOrthogonal));
+				}
 				AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
 			}
 			else
 			{
 				if (MovementVector.Y < 0 && leftDetect)
 				{
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(-CoverObjectOrthogonal));
 					AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
 				}
 				else if (rightDetect && MovementVector.Y > 0)
+				{
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal));
+					AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
+				}
+				else if (attached && (canGoDetect ||(!leftDetect&&!rightDetect)))
 				{
 					AddMovementInput(CoverObjectOrthogonal, MovementVector.Y);
 				}
@@ -245,15 +257,27 @@ void AMyPlayer::Move(const FInputActionValue& value)
 
 			if (canGoDetect)
 			{
+				if (MovementVector.Y > 0) {
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(-CoverObjectOrthogonal));
+				}
+				else if(MovementVector.Y < 0) {
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal));
+				}
 				AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
 			}
 			else {
 
 				if (MovementVector.Y > 0 && leftDetect)
 				{
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(-CoverObjectOrthogonal));
 					AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
 				}
 				else if (rightDetect && MovementVector.Y < 0)
+				{
+					this->SetActorRotation(UKismetMathLibrary::MakeRotFromX(CoverObjectOrthogonal));
+					AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
+				}
+				else if (attached && (canGoDetect || (!leftDetect && !rightDetect)))
 				{
 					AddMovementInput(-CoverObjectOrthogonal, MovementVector.Y);
 				}
@@ -412,13 +436,22 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 void AMyPlayer::Run(const FInputActionValue& value)
 {
 	if(nowCovering) Speed = 350.f;
-	else Speed = RunSpeed;
+	else 
+	{
+		Speed = RunSpeed;
+		SpringArm->SocketOffset.Y = FMath::Lerp(SpringArm->SocketOffset.Y, 0, 0.1);
+		
+	}
 }
 
 void AMyPlayer::Stop(const FInputActionValue& value)
 {
 	if(nowCovering) Speed = 250.f;
-	else Speed = WalkSpeed;
+	else 
+	{
+		Speed = WalkSpeed;
+		SpringArm->SocketOffset.Y = FMath::Lerp(SpringArm->SocketOffset.Y, 55, 0.1);
+	}
 }
 
 void AMyPlayer::FillHackableCount(float DeltaTime)
@@ -695,7 +728,7 @@ bool AMyPlayer::ConverLineTrace(float degree)
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForDuration,
 		LineHitResult,
 		true
 	);
@@ -763,7 +796,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		SphereHitResult,
 		true
 	);
@@ -777,7 +810,7 @@ void AMyPlayer::CoverMovement()
 		this,
 		SphereLeftTraceStart,
 		SphereLeftTraceStart,
-		70.f,
+		25.f,
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
@@ -795,7 +828,7 @@ void AMyPlayer::CoverMovement()
 		this,
 		SphereRightTraceStart,
 		SphereRightTraceStart,
-		70.f,
+		25.f,
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,

@@ -243,7 +243,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class USceneComponent* ShootStartPoint;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float ShootRange = 2000;
+		float ShootRange = 5000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float HorizontalRecoil = -0.1f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
