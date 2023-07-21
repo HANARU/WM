@@ -135,7 +135,7 @@ public:
 		void TrackInteractable();
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Interact")
-		void EndInteraction(FHitResult HitActor);
+		void EndInteraction();
 	UFUNCTION(BlueprintImplementableEvent, Category="Interact")
 		void OnInteraction(FHitResult HitActor);
 
