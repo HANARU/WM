@@ -37,6 +37,8 @@ AHackableActor_CCTV::AHackableActor_CCTV()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 
+	CollisionArea->SetupAttachment(Camera);
+
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
 
@@ -54,11 +56,19 @@ AHackableActor_CCTV::AHackableActor_CCTV()
 
 	InteractableWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractableWidget"));
 	InteractableWidget->SetupAttachment(SpringArm);
+
+	ConstructorHelpers::FObjectFinder<UUserWidget> TempUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/2_BP/BP_UI/UI_FocusedInteractableActor.UI_FocusedInteractableActor'"));
+
+	if (TempUI.Succeeded())
+	{
+		FocusedInteractable = TempUI.Object;
+	}
 }
 
 void AHackableActor_CCTV::BeginPlay()
 {
 	Super::BeginPlay();
+	InteractableWidget->SetVisibility(false);
 }
 
 void AHackableActor_CCTV::Tick(float DeltaTime)
@@ -111,18 +121,25 @@ void AHackableActor_CCTV::TrackInteractable()
 		HitActor = HitResult.GetActor();
 		if (HitActor)
 		{
-			if (HitActor->IsA(AHackableActor::StaticClass()) && HitActor != this)
+			if (HitActor->IsA(AHackableActor_CCTV::StaticClass()))
 			{
-				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, HitActor->GetName());
 				TrackedOtherCCTV = Cast<AHackableActor_CCTV>(HitActor);
-				bIsTrackingObject = true;
-			}
-			else if (HitActor->IsA(AHackableActor_CCTV::StaticClass()))
-			{
-				HackableActor = Cast<AHackableActor_CCTV>(HitActor);
+				OnInteraction(HitResult);
+				OtherCCTVUI = TrackedOtherCCTV->InteractableWidget;
+				OtherCCTVUI->SetVisibility(true);
 				bIsTrackingCCTV = true;
+				return;
 			}
-
+			else if (HitActor->IsA(AHackableActor::StaticClass()) && HitActor != this)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, HitActor->GetName());
+				HackableActor = Cast<AHackableActor>(HitActor);
+				OnInteraction(HitResult);
+				bIsTrackingObject = true;
+				return;
+			}
+			
 			else if (HitActor->IsA(AAI_EnemyBase::StaticClass()))
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
@@ -138,6 +155,8 @@ void AHackableActor_CCTV::TrackInteractable()
 			bIsTrackingCCTV = false;
 		}
 	}
+	EndInteraction();
+	if (OtherCCTVUI)	OtherCCTVUI->SetVisibility(false);
 }
 
 void AHackableActor_CCTV::InteractStart_1Sec()
@@ -148,9 +167,10 @@ void AHackableActor_CCTV::InteractStart_1Sec()
 	if (InteractionTime > 1.f)
 	{
 		InteractionTime = 0.f;
-		if (IsValid(HackableActor))
+		if (IsValid(TrackedOtherCCTV) && bIsTrackingCCTV)
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, TEXT("Move to Other Camera"));
+			TrackedOtherCCTV->ActivateCCTV();
 			CollisionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			bIsUsing = false;
 		}

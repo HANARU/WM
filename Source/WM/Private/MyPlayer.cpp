@@ -552,8 +552,6 @@ void AMyPlayer::TrackInteractable()
 				OnInteraction(HitResult);
 				return;
 			}
-		
-			
 		}
 
 		// 아무것도 맞지 않았다면

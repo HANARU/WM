@@ -52,6 +52,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bIsTrackingCCTV = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UUserWidget* FocusedInteractable;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UWidgetComponent* OtherObjectUI;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UWidgetComponent* OtherCCTVUI;
 
 
 protected:
@@ -77,4 +83,9 @@ public:
 		void InteractionSinglePress();
 	UFUNCTION(BlueprintCallable)
 		void Back2Player(AMyPlayer* SinglePlayer, APlayerController* PlayerController);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
+		void EndInteraction();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
+		void OnInteraction(FHitResult ContactActor);
 };

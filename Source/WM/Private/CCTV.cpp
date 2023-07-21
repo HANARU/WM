@@ -132,7 +132,7 @@ void ACCTV::TrackInteractable()
 
 			if (HitActor->IsA(ACCTV::StaticClass()))
 			{
-				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
+				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				TrackedOtherCCTV = Cast<ACCTV>(HitActor);
 				bIsTrackingCCTV = true;
 			}
