@@ -37,10 +37,6 @@ AHackableActor_CCTV::AHackableActor_CCTV()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 
-	CollisionArea = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
-	CollisionArea->SetupAttachment(Camera);
-	CollisionArea->SetSphereRadius(64);
-
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
 
@@ -115,10 +111,6 @@ void AHackableActor_CCTV::TrackInteractable()
 		HitActor = HitResult.GetActor();
 		if (HitActor)
 		{
-			FString ObjName;
-			ObjName.Append("Current is ");
-			ObjName.Append(HitActor->GetName());
-
 			if (HitActor->IsA(AHackableActor::StaticClass()) && HitActor != this)
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);

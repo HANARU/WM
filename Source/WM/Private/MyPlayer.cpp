@@ -141,6 +141,10 @@ void AMyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//<------------About Hacking--------------->//
+	FillHackableCount(DeltaTime);
+	TrackInteractable();
+
 	// 달리기 <-> 걷기 전환시 디테일 
 	GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(GetCharacterMovement()->MaxWalkSpeed, Speed, 5*DeltaTime);
 
@@ -154,10 +158,7 @@ void AMyPlayer::Tick(float DeltaTime)
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 150, 5 * DeltaTime);
 	}
 
-	//<------------About Hacking--------------->//
-	FillHackableCount(DeltaTime);
 
-	TrackInteractable();
 }
 
 void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -444,6 +445,11 @@ float AMyPlayer::InteractStart_1Sec()
 		{
 			CCTV->ActivateCCTV();
 		}
+		else if (IsValid(HackedCCTV))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Possess"));
+			HackedCCTV->ActivateCCTV();
+		}
 		else
 		{
 			return InteractionTime;
@@ -485,11 +491,11 @@ void AMyPlayer::TrackInteractable()
 	if (IsPossessing)
 	{
 		GetWorld()->LineTraceSingleByChannel(HitResult, StartVector, EndVector, ECollisionChannel::ECC_GameTraceChannel2);
-		DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Red, false, 0.001, 0, 4.f);
+		DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Red, false, 0.001, 0, 10.f);
 
 		if (IsValid(HitResult.GetActor()))
 		{
-			FString ObjName = HitResult.GetActor()->GetName();
+			FString ObjName;
 			ObjName.Append("Current is ");
 			ObjName.Append(HitResult.GetActor()->GetName());
 			GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
