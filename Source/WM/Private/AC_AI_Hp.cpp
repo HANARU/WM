@@ -7,6 +7,7 @@
 #include "../WM.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
+#include "AIModule/Classes/AIController.h"
 
 // Sets default values for this component's properties
 UAC_AI_Hp::UAC_AI_Hp()
@@ -25,6 +26,7 @@ void UAC_AI_Hp::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+
 	hp = maxhp;
 }
 
@@ -39,6 +41,7 @@ void UAC_AI_Hp::OnHit(float dmg)
 	}
 	else
 	{
+		OwnerEnemy->aicontroller->StopMovement();
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), OwnerEnemy->deathsound, OwnerEnemy->GetActorLocation());
 		OwnerEnemy->bIshit = true;
 		OwnerEnemy->HitTimer = FMath::FRandRange(1.4, 2.f);

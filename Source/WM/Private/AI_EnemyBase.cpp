@@ -32,68 +32,68 @@ AAI_EnemyBase::AAI_EnemyBase()
 
 	FTransform tempTrans;
 
-	#pragma region SetCapsuleInMesh
-	tempTrans.SetLocation(FVector(0, -9, 4));
-	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(0.f, 90.f, 0.f)));
-	tempTrans.SetScale3D(FVector(.4, .4, .15));
-	UCapsuleComponent* capH = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_head"));
-	capH->SetupAttachment(GetMesh(), "head");
-	capH->SetRelativeTransform(tempTrans);
+	//#pragma region SetCapsuleInMesh
+	//tempTrans.SetLocation(FVector(0, -9, 4));
+	//tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(0.f, 90.f, 0.f)));
+	//tempTrans.SetScale3D(FVector(.4, .4, .15));
+	//UCapsuleComponent* capH = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_head"));
+	//capH->SetupAttachment(GetMesh(), "head");
+	//capH->SetRelativeTransform(tempTrans);
 
-	tempTrans.SetLocation(FVector(0, -3, 0));
-	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(-90.f, 0, 0.f)));
-	tempTrans.SetScale3D(FVector(.6, .6, .8));
-	UCapsuleComponent* capB = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_body"));
-	capB->SetupAttachment(GetMesh(), "spine_02");
-	capB->SetRelativeTransform(tempTrans);
+	//tempTrans.SetLocation(FVector(0, -3, 0));
+	//tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(-90.f, 0, 0.f)));
+	//tempTrans.SetScale3D(FVector(.6, .6, .8));
+	//UCapsuleComponent* capB = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_body"));
+	//capB->SetupAttachment(GetMesh(), "spine_02");
+	//capB->SetRelativeTransform(tempTrans);
 
-	tempTrans.SetLocation(FVector(0, -3, 0));
-	tempTrans.SetScale3D(FVector(.1, .2, .3));
-	UCapsuleComponent* capUal = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_uparm_l"));
-	capUal->SetupAttachment(GetMesh(), "upperarm_l");
-	capUal->SetRelativeTransform(tempTrans);
-	UCapsuleComponent* capUar = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_uparm_r"));
-	capUar->SetupAttachment(GetMesh(), "upperarm_r");
-	capUar->SetRelativeTransform(tempTrans);
+	//tempTrans.SetLocation(FVector(0, -3, 0));
+	//tempTrans.SetScale3D(FVector(.1, .2, .3));
+	//UCapsuleComponent* capUal = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_uparm_l"));
+	//capUal->SetupAttachment(GetMesh(), "upperarm_l");
+	//capUal->SetRelativeTransform(tempTrans);
+	//UCapsuleComponent* capUar = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_uparm_r"));
+	//capUar->SetupAttachment(GetMesh(), "upperarm_r");
+	//capUar->SetRelativeTransform(tempTrans);
 
-	tempTrans.SetLocation(FVector(0, -9, 0));
-	tempTrans.SetScale3D(FVector(.1, .2, .55));
-	UCapsuleComponent* capDal = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downarm_l"));
-	capDal->SetupAttachment(GetMesh(), "lowerarm_l");
-	capDal->SetRelativeTransform(tempTrans);
-	UCapsuleComponent* capDar = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downarm_r"));
-	capDar->SetupAttachment(GetMesh(), "lowerarm_r");
-	capDar->SetRelativeTransform(tempTrans);
+	//tempTrans.SetLocation(FVector(0, -9, 0));
+	//tempTrans.SetScale3D(FVector(.1, .2, .55));
+	//UCapsuleComponent* capDal = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downarm_l"));
+	//capDal->SetupAttachment(GetMesh(), "lowerarm_l");
+	//capDal->SetRelativeTransform(tempTrans);
+	//UCapsuleComponent* capDar = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downarm_r"));
+	//capDar->SetupAttachment(GetMesh(), "lowerarm_r");
+	//capDar->SetRelativeTransform(tempTrans);
 
-	tempTrans.SetLocation(FVector(0, -3, 0));
-	tempTrans.SetScale3D(FVector(.5, .2, .55));
-	UCapsuleComponent* capUll = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_upleg_l"));
-	capUll->SetupAttachment(GetMesh(), "thigh_l");
-	capUll->SetRelativeTransform(tempTrans);
-	UCapsuleComponent* capUlr = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_upleg_r"));
-	capUlr->SetupAttachment(GetMesh(), "thigh_r");
-	capUlr->SetRelativeTransform(tempTrans);
+	//tempTrans.SetLocation(FVector(0, -3, 0));
+	//tempTrans.SetScale3D(FVector(.5, .2, .55));
+	//UCapsuleComponent* capUll = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_upleg_l"));
+	//capUll->SetupAttachment(GetMesh(), "thigh_l");
+	//capUll->SetRelativeTransform(tempTrans);
+	//UCapsuleComponent* capUlr = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_upleg_r"));
+	//capUlr->SetupAttachment(GetMesh(), "thigh_r");
+	//capUlr->SetRelativeTransform(tempTrans);
 
-	tempTrans.SetLocation(FVector(0, -24, 0));
-	tempTrans.SetScale3D(FVector(.25, .2, .55));
-	UCapsuleComponent* capDll = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downleg_l"));
-	capDll->SetupAttachment(GetMesh(), "calf_l");
-	capDll->SetRelativeTransform(tempTrans);
-	UCapsuleComponent* capDlr = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downleg_r"));
-	capDlr->SetupAttachment(GetMesh(), "calf_r");
-	capDlr->SetRelativeTransform(tempTrans);
+	//tempTrans.SetLocation(FVector(0, -24, 0));
+	//tempTrans.SetScale3D(FVector(.25, .2, .55));
+	//UCapsuleComponent* capDll = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downleg_l"));
+	//capDll->SetupAttachment(GetMesh(), "calf_l");
+	//capDll->SetRelativeTransform(tempTrans);
+	//UCapsuleComponent* capDlr = CreateDefaultSubobject<UCapsuleComponent>(TEXT("cap_downleg_r"));
+	//capDlr->SetupAttachment(GetMesh(), "calf_r");
+	//capDlr->SetRelativeTransform(tempTrans);
 
-	Colcapsules.Add(capB);
-	Colcapsules.Add(capH);
-	Colcapsules.Add(capDal);
-	Colcapsules.Add(capDar);
-	Colcapsules.Add(capDll);
-	Colcapsules.Add(capDlr);
-	Colcapsules.Add(capUal);
-	Colcapsules.Add(capUar);
-	Colcapsules.Add(capUll);
-	Colcapsules.Add(capUlr);
-	#pragma endregion SetCapsuleInMesh
+	//Colcapsules.Add(capB);
+	//Colcapsules.Add(capH);
+	//Colcapsules.Add(capDal);
+	//Colcapsules.Add(capDar);
+	//Colcapsules.Add(capDll);
+	//Colcapsules.Add(capDlr);
+	//Colcapsules.Add(capUal);
+	//Colcapsules.Add(capUar);
+	//Colcapsules.Add(capUll);
+	//Colcapsules.Add(capUlr);
+	//#pragma endregion SetCapsuleInMesh
 
 	tempTrans.SetLocation(FVector(1, -13.8, 2.65));
 	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(90.f, -75.f, -90.f)));
@@ -184,7 +184,7 @@ FHitResult AAI_EnemyBase::LineTraceSocket(FName SocketName, ACharacter* TargetCh
 
 void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 {
-	if (bIsdie) return;
+	if (bIsdie || bIshit) return;
 	AMyPlayer* player = Cast<AMyPlayer>(OtherPawn);
 	if (player)
 	{
@@ -237,7 +237,7 @@ void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
 
 void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume)
 {
-	if (bIsdie) return;
+	if (bIsdie || bIshit) return;
 	if (OtherPawn->IsA(AAI_EnemyBase::StaticClass()))
 	{
 		PRINT_LOG(TEXT("shotsound"));
@@ -263,7 +263,6 @@ void AAI_EnemyBase::SetAttack(AMyPlayer* player)
 	SeeingTimer = 1.0;
 	if (battComp->State == ECOMBAT::HIDDEN || battComp->State == ECOMBAT::HIDDENRUN) return;
 	bUseControllerRotationYaw = false;
-	aicontroller->StopMovement();
 	if (!bIsBattle)
 	{
 		battComp->FindAndMoveCover();
@@ -295,13 +294,15 @@ void AAI_EnemyBase::SetDie()
 		player->isInCombat--;
 		PRINT_LOG(TEXT("%d"), player->isInCombat);
 	}
+
 	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
-	GetMesh()->SetSimulatePhysics(true);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	for (UCapsuleComponent* capsule : Colcapsules)
-	{
-		if(capsule)
-		capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
+	GetMesh()->SetAnimClass(nullptr);
+	//GetMesh()->SetSimulatePhysics(true);
+	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//for (UCapsuleComponent* capsule : Colcapsules)
+	//{
+	//	if(capsule)
+	//	capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//}
 	bIsdie = true;
 }
