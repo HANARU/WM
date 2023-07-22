@@ -59,6 +59,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UWidgetComponent* OtherCCTVUI;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TObjectPtr<USoundBase> Player2CCTV;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TObjectPtr<USoundBase> CCTV2Player;
+
 
 protected:
 	virtual void BeginPlay() override;

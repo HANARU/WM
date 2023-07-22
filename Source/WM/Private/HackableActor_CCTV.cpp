@@ -38,6 +38,7 @@ AHackableActor_CCTV::AHackableActor_CCTV()
 	Camera->SetupAttachment(SpringArm);
 
 	CollisionArea->SetupAttachment(Camera);
+	CollisionArea->SetSphereRadius(120);
 
 	HackingTransition = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
 	HackingTransition->SetVisibility(false);
@@ -84,7 +85,6 @@ void AHackableActor_CCTV::SetupPlayerInputComponent(UInputComponent* PlayerInput
 }
 
 
-
 void AHackableActor_CCTV::ActivateCCTV()
 {
 	bIsUsing = true;
@@ -92,13 +92,16 @@ void AHackableActor_CCTV::ActivateCCTV()
 
 	APlayerController* MyPlayerController = UGameplayStatics::GetPlayerController(this, 0);
 
-	MyPlayerController->SetViewTargetWithBlend(this, 0.5f);
+	Player2CCTV = LoadObject<USoundWave>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/5_Sound/SFX/SC_Player2CCTV.SC_Player2CCTV'"));
+	UGameplayStatics::PlaySound2D(GetWorld(), Player2CCTV);
+
+	MyPlayerController->SetViewTargetWithBlend(this, 1.f);
 
 	HackingTransition->SetVisibility(true);
 
 	FTimerHandle TimerHandle;
 
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AHackableActor_CCTV::PossessCCTV, 0.55f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AHackableActor_CCTV::PossessCCTV, 1.05f, false);
 }
 
 void AHackableActor_CCTV::PossessCCTV()
@@ -218,7 +221,11 @@ void AHackableActor_CCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController
 	bIsTrackingAI = false;
 	bIsTrackingObject = false;
 	bIsTrackingCCTV = false;
-	PlayerController->SetViewTargetWithBlend(SinglePlayer, 0.5f);
+
+	CCTV2Player = LoadObject<USoundWave>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/5_Sound/SFX/SC_CCTV2Player.SC_CCTV2Player'"));
+	UGameplayStatics::PlaySound2D(GetWorld(), CCTV2Player);
+
+	PlayerController->SetViewTargetWithBlend(SinglePlayer, 1.f);
 	HackingTransition->SetVisibility(true);
 	FTimerHandle TimerHandle;
 
@@ -229,5 +236,5 @@ void AHackableActor_CCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController
 			GetWorld()->GetFirstPlayerController()->Possess(SinglePlayer);
 			HackingTransition->SetVisibility(false);
 
-		}), 0.55f, false);
+		}), 1.05f, false);
 }

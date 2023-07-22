@@ -120,6 +120,7 @@ public:
 		class UPostProcessComponent* HackingTransition;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bProcessEvent = false;
+
 		
 
 	UFUNCTION(BlueprintCallable)
