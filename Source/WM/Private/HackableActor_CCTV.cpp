@@ -55,7 +55,7 @@ AHackableActor_CCTV::AHackableActor_CCTV()
 	}
 
 	InteractableWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractableWidget"));
-	InteractableWidget->SetupAttachment(SpringArm);
+	InteractableWidget->SetupAttachment(CameraBody);
 
 	ConstructorHelpers::FObjectFinder<UUserWidget> TempUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/2_BP/BP_UI/UI_FocusedInteractableActor.UI_FocusedInteractableActor'"));
 
@@ -125,7 +125,7 @@ void AHackableActor_CCTV::TrackInteractable()
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, HitActor->GetName());
 				TrackedOtherCCTV = Cast<AHackableActor_CCTV>(HitActor);
-				OnInteraction(HitResult);
+				OnInteractionCCTV(HitResult);
 				OtherCCTVUI = TrackedOtherCCTV->InteractableWidget;
 				OtherCCTVUI->SetVisibility(true);
 				bIsTrackingCCTV = true;
@@ -135,7 +135,7 @@ void AHackableActor_CCTV::TrackInteractable()
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, HitActor->GetName());
 				HackableActor = Cast<AHackableActor>(HitActor);
-				OnInteraction(HitResult);
+				OnInteractionObject(HitResult);
 				bIsTrackingObject = true;
 				return;
 			}

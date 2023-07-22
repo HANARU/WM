@@ -87,5 +87,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
 		void EndInteraction();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
-		void OnInteraction(FHitResult ContactActor);
+		void OnInteractionCCTV(FHitResult ContactActor);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
+		void OnInteractionObject(FHitResult ContactActor);
 };

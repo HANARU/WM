@@ -538,10 +538,10 @@ void AMyPlayer::TrackInteractable()
 				CCTV = Cast<ACCTV>(HitResult.GetActor());
 			}
 
-			if (HitResult.GetActor()->IsA(AHackableActor_CCTV::StaticClass()))
+			else if (HitResult.GetActor()->IsA(AHackableActor_CCTV::StaticClass()))
 			{
 				HackedCCTV = Cast<AHackableActor_CCTV>(HitResult.GetActor());
-				OnInteraction(HitResult);
+				OnInteractionCCTV(HitResult);
 				CCTVUi = HackedCCTV->InteractableWidget;
 				CCTVUi->SetVisibility(true);
 				return;
@@ -549,7 +549,7 @@ void AMyPlayer::TrackInteractable()
 			else if(HitResult.GetActor()->IsA(AHackableActor::StaticClass()))
 			{
 				HackableActor = Cast<AHackableActor>(HitResult.GetActor());
-				OnInteraction(HitResult);
+				OnInteractionObject(HitResult);
 				return;
 			}
 		}
