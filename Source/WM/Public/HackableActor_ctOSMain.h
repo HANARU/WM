@@ -19,7 +19,7 @@ public:
 		bool IsInArea = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int LeftCTOSAP;
+		bool IsLV1 = true;
 
 public:
 	virtual void BeginPlay() override;
@@ -35,8 +35,8 @@ public:
 		void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void TryHackingCTOS();
+		void LV1TryHackCTOS();
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void AccessCutScene();
+		void LV2TryHackCTOS();
 };

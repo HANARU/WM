@@ -83,6 +83,8 @@ void AHackableActor_CCTV::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+
+
 void AHackableActor_CCTV::ActivateCCTV()
 {
 	bIsUsing = true;
@@ -144,7 +146,9 @@ void AHackableActor_CCTV::TrackInteractable()
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				TrackedEnemy = Cast<AAI_EnemyBase>(HitActor);
+				OnInteractionAI(HitResult);
 				bIsTrackingAI = true;
+				return;
 			}
 		}
 		else
@@ -195,6 +199,17 @@ void AHackableActor_CCTV::InteractionSinglePress()
 	if (IsValid(HackableActor) && TrackedOtherCCTV == nullptr)
 	{
 		HackableActor->Action_Interact_Single();
+	}
+	else if (IsValid(TrackedEnemy) && TrackedOtherCCTV == nullptr)
+	{
+		if (TrackedEnemy->AI_Num == TEXT("2"))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Target Hacked"));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, TEXT("Hacked"));
+		}
 	}
 }
 

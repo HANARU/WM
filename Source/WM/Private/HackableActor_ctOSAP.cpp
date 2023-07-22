@@ -4,10 +4,9 @@
 
 void AHackableActor_ctOSAP::Tick(float DeltaTime)
 {
-	FXSpark = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle"));
+	//FXSpark = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle"));
 	//FXSpark->SetupAttachment(RootComponent);
-	FXSpark->SetAutoActivate(false);
-	Object_Num = TEXT("2");
+	//FXSpark->SetAutoActivate(false);
 }
 
 void AHackableActor_ctOSAP::Action_Interact_Single()

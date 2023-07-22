@@ -68,6 +68,7 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
+
 public:
 	void ActivateCCTV();
 
@@ -90,4 +91,6 @@ public:
 		void OnInteractionCCTV(FHitResult ContactActor);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
 		void OnInteractionObject(FHitResult ContactActor);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
+		void OnInteractionAI(FHitResult ContactActor);
 };
