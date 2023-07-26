@@ -28,6 +28,16 @@ public:
 	class UArrowComponent* Right45DetectArrow;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gun)
 	class UStaticMeshComponent* Pistol;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gun)
+	class UStaticMeshComponent* M416;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gun)
+	class UStaticMeshComponent* CubeForAim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gun)
+	class UStaticMeshComponent* SphereForAim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gun)
+	class UStaticMeshComponent* CubeForAimP;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gun)
+	class UStaticMeshComponent* SphereForAimP;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
 	class UMotionWarpingComponent* MotionWraping;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
@@ -59,6 +69,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* RunAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* SwitchAction;
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* MouseLeftClick;
@@ -84,6 +97,8 @@ public:
 	void Vault(const FInputActionValue& value);
 	void Run(const FInputActionValue& value);
 	void Stop(const FInputActionValue& value);
+	UFUNCTION(BlueprintCallable)
+	void ChangeGun();
 	
 	UFUNCTION(BlueprintImplementableEvent, Category="Move")
 	void PlayStopMontage();
@@ -230,7 +245,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Gun")
 		bool isZooming = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Gun")
-		int isInCombat = 0;
+		int isInCombat = 0; 
 	
 	UFUNCTION()
 		FVector CameraLineTrace();
@@ -250,7 +265,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float HorizontalRecoil = -0.1f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float VerticalRecoil = -0.3f;
+		float VerticalRecoil = -0.2f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gun")
 	bool isRifle = false;
