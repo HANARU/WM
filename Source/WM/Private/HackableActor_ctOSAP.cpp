@@ -1,4 +1,5 @@
 #include "HackableActor_ctOSAP.h"
+#include "HackableActor_ctOSMain.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 

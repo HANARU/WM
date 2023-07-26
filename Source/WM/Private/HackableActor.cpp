@@ -1,7 +1,5 @@
 #include "HackableActor.h"
 #include "AI_EnemyBase.h"
-#include "Components/SceneComponent.h"
-#include "Components/SphereComponent.h"
 
 AHackableActor::AHackableActor()
 {

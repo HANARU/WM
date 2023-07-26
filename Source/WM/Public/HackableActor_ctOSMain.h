@@ -21,6 +21,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool IsLV1 = true;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int CountAP = 0;
+
 public:
 	virtual void BeginPlay() override;
 
@@ -39,4 +42,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void LV2TryHackCTOS();
+
+	UFUNCTION(BlueprintCallable)
+		void CheckAP();
 };

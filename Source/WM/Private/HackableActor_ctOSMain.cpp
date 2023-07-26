@@ -45,3 +45,24 @@ void AHackableActor_ctOSMain::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 {
 	IsInArea = false;
 }
+
+void AHackableActor_ctOSMain::CheckAP()
+{
+	if (IsLV1 == false)
+	{
+		if (CountAP == 2)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Interact Activated"));
+		}
+		else
+		{
+			CountAP++;
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Count++"));
+		}
+	}
+	else
+	{
+		return;
+	}
+
+}

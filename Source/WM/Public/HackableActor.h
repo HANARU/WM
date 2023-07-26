@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h"
 #include "HackableActor.generated.h"
 
 UCLASS()
