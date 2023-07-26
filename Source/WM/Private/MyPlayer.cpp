@@ -74,6 +74,65 @@ AMyPlayer::AMyPlayer()
 		Pistol->SetRelativeScale3D(FVector(0.3));
 	}
 
+	M416 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("M416"));
+	M416->SetupAttachment(GetMesh(), TEXT("GunBody"));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempRifle(TEXT("/Script/Engine.StaticMesh'/Game/3_SM/M416/M4A1.M4A1'"));
+	if (TempPistol.Succeeded())
+	{
+		M416->SetStaticMesh(TempRifle.Object);
+		M416->SetRelativeLocation(FVector(-60, 5, -17));
+		M416->SetRelativeRotation(FRotator(0.03, 1.53, 175));
+		M416->SetRelativeScale3D(FVector(1.5));
+	}
+
+	CubeForAim = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeForAim"));
+	CubeForAim->SetupAttachment(M416, TEXT("firePosition"));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempCube(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
+	if (TempCube.Succeeded())
+	{
+		CubeForAim -> SetStaticMesh(TempCube.Object);
+		CubeForAim -> SetRelativeLocation(FVector(0,0,2500));
+		CubeForAim -> SetRelativeScale3D(FVector(0.1,0.1,50));
+	}
+
+	SphereForAim = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SphereForAim"));
+	SphereForAim->SetupAttachment(CubeForAim);
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempSphere(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
+
+	if (TempSphere.Succeeded())
+	{
+		SphereForAim->SetStaticMesh(TempSphere.Object);
+		SphereForAim->SetRelativeLocation(FVector(0, 0, 50));
+		SphereForAim->SetRelativeScale3D(FVector(3.0, 3.0, 0.03));
+	}
+
+	CubeForAimP = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeForAimP"));
+	CubeForAimP->SetupAttachment(Pistol, TEXT("FirePosition"));
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempCubeP(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
+	if (TempCube.Succeeded())
+	{
+		CubeForAimP->SetStaticMesh(TempCubeP.Object);
+		CubeForAimP->SetRelativeLocation(FVector(2500, 0, 0));
+		CubeForAimP->SetRelativeScale3D(FVector(50, 0.1, 0.1));
+	}
+
+	SphereForAimP = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SphereForAimP"));
+	SphereForAimP->SetupAttachment(CubeForAimP);
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempSphereP(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
+
+	if (TempSphereP.Succeeded())
+	{
+		SphereForAimP->SetStaticMesh(TempSphereP.Object);
+		SphereForAimP->SetRelativeLocation(FVector(0, 0, 50));
+		SphereForAimP->SetRelativeScale3D(FVector(3.0, 3.0, 0.03));
+	}
+
+
 	CenterArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("CenterArrow"));
 	CenterArrow->SetupAttachment(GetMesh());
 
@@ -180,6 +239,8 @@ void AMyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AMyPlayer::Run);
 
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AMyPlayer::Stop);
+
+	//EnhancedInputComponent->BindAction(SwitchAction, ETriggerEvent::Triggered, this, &AMyPlayer::ChangeGun);
 }
 
 void AMyPlayer::Move(const FInputActionValue& value)
@@ -439,7 +500,6 @@ void AMyPlayer::Run(const FInputActionValue& value)
 	else 
 	{
 		Speed = RunSpeed;
-		SpringArm->SocketOffset.Y = FMath::Lerp(SpringArm->SocketOffset.Y, 0, 0.1);
 		
 	}
 }
@@ -450,7 +510,31 @@ void AMyPlayer::Stop(const FInputActionValue& value)
 	else 
 	{
 		Speed = WalkSpeed;
-		SpringArm->SocketOffset.Y = FMath::Lerp(SpringArm->SocketOffset.Y, 55, 0.1);
+	}
+}
+
+void AMyPlayer::ChangeGun()
+{
+	if (isArmed)
+	{
+		if (isRifle)
+		{
+			isRifle = false;
+			M416->SetVisibility(false);
+			isPistol = true;
+			Pistol->SetVisibility(true);
+		}
+		else if (isPistol)
+		{
+			isPistol = false;
+			Pistol->SetVisibility(false);
+			isArmed = false;
+		}
+	}
+	else {
+		isArmed = true;
+		isRifle = true;
+		M416->SetVisibility(true);
 	}
 }
 
@@ -597,7 +681,7 @@ void AMyPlayer::Shoot()
 	//LineTrace 조정
 	// Line Trace 입력 값	
 	FHitResult HitResult;
-	FVector StartLocation = Pistol->GetSocketLocation(FName("FirePosition"));
+	FVector StartLocation = isRifle ? M416->GetSocketLocation(FName("firePosition")) : Pistol->GetSocketLocation(FName("FirePosition"));
 	FVector EndLocation = CameraLineTrace();
 
 
@@ -609,9 +693,11 @@ void AMyPlayer::Shoot()
 	/*AddControllerYawInput(HorizontalRecoil);
 	AddControllerPitchInput(VerticalRecoil);*/
 
-	// 효과
-	FVector firePosition = Pistol->GetSocketLocation(FName("FirePosition"));
+	FVector firePosition = isRifle ? M416->GetSocketLocation(FName("firePosition")) : Pistol->GetSocketLocation(FName("FirePosition"));
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, firePosition, (EndLocation - StartLocation).Rotation(), FVector(0.05));
+
+	// 효과
+	//PlayShootMontage();
 
 
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
@@ -634,8 +720,9 @@ void AMyPlayer::Shoot()
 			}
 		}
 	}
+	
+	
 
-	PlayShootMontage();
 }
 
 void AMyPlayer::ZoomIn()
@@ -644,9 +731,43 @@ void AMyPlayer::ZoomIn()
 	SpringArm->bEnableCameraLag = false;
 	isZooming = true;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
+	//SpringArm->SocketOffset.Y = -55;
 	SpringArm->SetRelativeLocation(FVector(0,0,70));
 	bUseControllerRotationYaw = true;
-	//bUseControllerRotationPitch = true;
+	if (nowCovering) SpringArm->TargetArmLength = 150;
+	this->SetActorRotation(FRotator(0, (PlayerCamera->GetForwardVector()*100 - GetMesh()->GetForwardVector()).Rotation().Yaw ,0));
+
+	// LineTrace 발사 for 조준선
+	// Line Trace 입력 값	
+	// 엄폐 상태가 아닐 때만 -> 가까이 있는 위치 조정한다. 
+	if(!nowCovering)
+	{
+		FHitResult HitResult;
+		FVector LineTraceStart = isRifle ? M416->GetSocketLocation(FName("firePosition")) : Pistol->GetSocketLocation(FName("FirePosition"));
+		FVector LineTraceEnd = isRifle ?  SphereForAim->GetComponentLocation() : SphereForAimP->GetComponentLocation();
+		TArray<AActor*> ActorsToIgnore;
+
+		bool Hit = UKismetSystemLibrary::LineTraceSingle(
+			this,
+			LineTraceStart,
+			LineTraceEnd,
+			ETraceTypeQuery::TraceTypeQuery5,
+			false,
+			ActorsToIgnore,
+			EDrawDebugTrace::None,
+			HitResult,
+			true
+		);
+
+		if (Hit)
+		{
+			SphereForAim->SetWorldLocation(HitResult.Location);
+		}
+		else {
+			SphereForAim->SetRelativeLocation(FVector(0, 0, 50));
+		}
+	}
+
 }
 
 void AMyPlayer::ZoomOut()
@@ -655,10 +776,10 @@ void AMyPlayer::ZoomOut()
 	isZooming = false;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
 	SpringArm->SetRelativeLocation(FVector(0,0,60));
-	
+	//SpringArm->SocketOffset.Y = 55;
 	float deltaRotate = GetDeltaRotate();
 	if(nowCovering)
-	{
+	{// 플레이어가 바라본 상태로 다시 엄폐를 수행한다.
 		if(FMath::Abs(deltaRotate)<90) this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw, 0));
 		else this->SetActorRotation(FRotator(0, CoverObjectOrthogonal.Rotation().Yaw +180, 0));
 	}
