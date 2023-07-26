@@ -21,5 +21,7 @@ public:
 		class AHackableActor* HackableActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class ACCTV* TrackedCCTV;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class AHackableActor_ctOSMain* ctOSMain;
 
 };

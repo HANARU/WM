@@ -1,5 +1,6 @@
 #include "HackableActor_ctOSMain.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/KismetStringLibrary.h"
 
 AHackableActor_ctOSMain::AHackableActor_ctOSMain()
 {
@@ -52,13 +53,10 @@ void AHackableActor_ctOSMain::CheckAP()
 	{
 		if (CountAP == 2)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Interact Activated"));
+			CountAP = 2;
+			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, TEXT("Interaction Complete"));
 		}
-		else
-		{
-			CountAP++;
-			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Count++"));
-		}
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, UKismetStringLibrary::Conv_IntToString(CountAP));
 	}
 	else
 	{
