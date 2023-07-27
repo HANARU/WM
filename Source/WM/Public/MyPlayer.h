@@ -193,6 +193,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool canGoDetect = false;
 	bool attached = false;
+	bool CoverToCover = false;
 
 
 	//엄폐할 장소가 있는지 판단하는 함수
@@ -202,6 +203,8 @@ public:
 	FHitResult CoverLineHitResult;
 	//엄폐 후 움직임에 대한 정의
 	void CoverMovement();
+	// 엄폐 후 다른 엄폐 찾기
+	bool AfterCoverLineTrace(bool canGo);
 	float GetDeltaRotate();
 
 
@@ -255,6 +258,8 @@ public:
 		void ZoomIn();
 	UFUNCTION(BlueprintCallable)
 		void ZoomOut();
+	UFUNCTION(BlueprintCallable)
+		void Reload();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Gun")
 		void PlayShootMontage();
 
@@ -266,6 +271,12 @@ public:
 		float HorizontalRecoil = -0.1f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float VerticalRecoil = -0.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int MagazineCapacity = 30;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int Magazine = 300;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int NumOfBullet = 30;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gun")
 	bool isRifle = false;
@@ -276,4 +287,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Gun")
 	class UParticleSystem* FireEffect;
+	UPROPERTY(EditDefaultsOnly, Category="Gun")
+	TSubclassOf<class ABullet> BulletFactory;
 };
