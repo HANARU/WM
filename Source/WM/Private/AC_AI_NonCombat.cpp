@@ -26,7 +26,8 @@ void UAC_AI_NonCombat::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	OwnerEnemy = Cast<AAI_EnemyBase>(GetOwner());
+	Owner = Cast<AAI_EnemyBase>(GetOwner());
+	float nearDis = 50000;
 	for (TActorIterator<AActor> It(GetWorld(), AActor::StaticClass()); It; ++It)
 	{
 		AActor* Actor = *It;
@@ -35,6 +36,11 @@ void UAC_AI_NonCombat::BeginPlay()
 			if (Actor->ActorHasTag(FName(FString::Printf(TEXT("patrol%d"), pointtagindex))))
 			{
 				pointArray.Add(Actor);
+				if ((Actor->GetActorLocation() - Owner->GetActorLocation()).Size() < nearDis)
+				{
+					nearDis = (Actor->GetActorLocation() - Owner->GetActorLocation()).Size();
+					currentPoint = Actor;
+				}
 			}
 		}
 	}
@@ -44,16 +50,40 @@ void UAC_AI_NonCombat::BeginPlay()
 // Called every frame
 void UAC_AI_NonCombat::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	if (OwnerEnemy->bIsdie) return;
+	if (Owner->bIsdie) return;
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (OwnerEnemy && !OwnerEnemy->bIsBattle)
+	if (Owner && !Owner->bIsBattle)
 	{
-		StateTimer = FMath::Max(0, StateTimer - DeltaTime);
-		if (StateTimer == 0)
+		if (patrolType)
 		{
-			StateTimer = FMath::RandRange(StateTimerMin, StateTimerMax);
-			SetRandomPoint();
+			StateTimer = FMath::Max(0, StateTimer - DeltaTime);
+			if (StateTimer == 0)
+			{
+				StateTimer = FMath::RandRange(StateTimerMin, StateTimerMax);
+				SetRandomPoint();
+			}
+		}
+		else
+		{
+			if (!pointArray.IsEmpty())
+			{
+				if (currentPoint)
+				//PRINT_LOG(TEXT("%f"), (currentPoint->GetActorLocation() - Owner->GetActorLocation()).Size());
+				if (!patrolType && (Owner->aicontroller->GetMoveStatus() == EPathFollowingStatus::Idle))
+				{
+					int index = pointArray.Find(currentPoint);
+					AActor* temppoint = currentPoint;
+					index = (index + 1) % pointArray.Num();
+					currentPoint = pointArray[index];
+					FVector loc = currentPoint->GetActorLocation();
+					if (Owner->aicontroller)
+					{
+						Owner->aicontroller->MoveToLocation(loc + FVector(FMath::RandRange(0, 300), FMath::RandRange(0, 300), 0));
+						TargetLoc = loc;
+					}
+				}
+			}
 		}
 		switch (State)
 		{
@@ -71,10 +101,14 @@ void UAC_AI_NonCombat::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UAC_AI_NonCombat::SetRandomPoint()
 {
-	if (pointArray.IsEmpty()) return;
-	if(FMath::RandBool())
+	if (pointArray.IsEmpty())
 	{
-		OwnerEnemy->aicontroller->StopMovement();
+		StateChange(ENONCOMBAT::IDLE);
+		return;
+	}
+	if (FMath::RandBool())
+	{
+		Owner->aicontroller->StopMovement();
 		StateChange(ENONCOMBAT::IDLE);
 	}
 	else
@@ -85,9 +119,9 @@ void UAC_AI_NonCombat::SetRandomPoint()
 			AActor* temppoint = currentPoint;
 			currentPoint = pointArray[randomint];
 			FVector loc = currentPoint->GetActorLocation();
-			if (OwnerEnemy->aicontroller)
+			if (Owner->aicontroller)
 			{
-				OwnerEnemy->aicontroller->MoveToLocation(loc);
+				Owner->aicontroller->MoveToLocation(loc);
 				TargetLoc = loc;
 			}
 		}
@@ -100,28 +134,28 @@ void UAC_AI_NonCombat::SetRandomPoint()
 				AActor* temppoint = currentPoint;
 				currentPoint = pointArray[randomint];
 				FVector loc = currentPoint->GetActorLocation();
-				if (OwnerEnemy->aicontroller)
+				if (Owner->aicontroller)
 				{
-					OwnerEnemy->aicontroller->MoveToLocation(loc);
+					Owner->aicontroller->MoveToLocation(loc);
 					TargetLoc = loc;
 				}
 			}
 			else
 			{
-				FVector loc = OwnerEnemy->GetActorLocation();
-				if (OwnerEnemy->aicontroller)
+				FVector loc = Owner->GetActorLocation();
+				if (Owner->aicontroller)
 				{
 					loc += FVector(FMath::RandRange(0, 100), FMath::RandRange(0, 100), 0);
-					EPathFollowingRequestResult::Type result = OwnerEnemy->aicontroller->MoveToLocation(loc);
+					EPathFollowingRequestResult::Type result = Owner->aicontroller->MoveToLocation(loc);
 					if (result == EPathFollowingRequestResult::Failed)
 					{
 						int randomint = FMath::RandRange(0, pointArray.Num() - 1);
 						AActor* temppoint = currentPoint;
 						currentPoint = pointArray[randomint];
 						loc = currentPoint->GetActorLocation();
-						if (OwnerEnemy->aicontroller)
+						if (Owner->aicontroller)
 						{
-							OwnerEnemy->aicontroller->MoveToLocation(loc);
+							Owner->aicontroller->MoveToLocation(loc);
 							TargetLoc = loc;
 						}
 					}
@@ -140,22 +174,22 @@ void UAC_AI_NonCombat::StateChange(ENONCOMBAT ChageState)
 {
 	StateBefore = State;
 	State = ChageState;
-	OwnerEnemy->GetCharacterMovement()->MaxWalkSpeed = 200;
+	Owner->GetCharacterMovement()->MaxWalkSpeed = 200;
 	switch (State)
 	{
 	case ENONCOMBAT::IDLE:
 		if (StateBefore == ENONCOMBAT::IDLE)
 		{
-			if (FMath::RandBool())
+			if (FMath::RandRange(0, 5) == 0)
 			{
-				OwnerEnemy->animins->Montage_Play(OwnerEnemy->animins->IdleMontage);
-				OwnerEnemy->animins->Montage_JumpToSection(OwnerEnemy->animins->IdleMontage->GetSectionName(FMath::RandRange(0, OwnerEnemy->animins->IdleMontage->GetNumSections() - 1)));
+				Owner->animins->Montage_Play(Owner->animins->IdleMontage);
+				Owner->animins->Montage_JumpToSection(Owner->animins->IdleMontage->GetSectionName(FMath::RandRange(0, Owner->animins->IdleMontage->GetNumSections() - 1)));
 				PRINT_LOG(TEXT("dodo"));
 			}
 		}
 		break;
 	case ENONCOMBAT::MOVE:
-		OwnerEnemy->animins->StopAllMontages(.5);
+		Owner->animins->StopAllMontages(.5);
 		break;
 	default:
 		break;
@@ -174,7 +208,7 @@ void UAC_AI_NonCombat::StateMove()
 	FAIMoveRequest req;
 	req.SetGoalLocation(TargetLoc);
 	req.SetAcceptanceRadius(3);
-	OwnerEnemy->aicontroller->BuildPathfindingQuery(req, query);
+	Owner->aicontroller->BuildPathfindingQuery(req, query);
 	auto r = ns->FindPathSync(query);
 	if (r.Result == ENavigationQueryResult::Success)
 	{

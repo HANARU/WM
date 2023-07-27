@@ -26,6 +26,8 @@ public :
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	FVector Velocity;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
+	bool bIsTerrified;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	bool bIsSky;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = OwnerValue)
 	bool bIsCombat;

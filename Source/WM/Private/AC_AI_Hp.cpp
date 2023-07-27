@@ -26,26 +26,25 @@ void UAC_AI_Hp::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-
+	Owner = Cast<AAI_EnemyBase> (GetOwner());
 	hp = maxhp;
 }
 
 void UAC_AI_Hp::OnHit(float dmg)
 {
 	hp -= dmg;
-	if (!OwnerEnemy) return;
+	if (!Owner) return;
 	if (hp <= 0)
 	{
-		OwnerEnemy->SetDie();
-		//PRINT_LOG(TEXT("hittttttttt"));
+		Owner->SetDie();
 	}
 	else
 	{
-		OwnerEnemy->aicontroller->StopMovement();
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), OwnerEnemy->deathsound, OwnerEnemy->GetActorLocation());
-		OwnerEnemy->bIshit = true;
-		OwnerEnemy->HitTimer = FMath::FRandRange(1.4, 2.f);
-		OwnerEnemy->animins->Montage_Play(OwnerEnemy->animins->HitMontage);
-		OwnerEnemy->animins->Montage_JumpToSection(OwnerEnemy->animins->HitMontage->GetSectionName(FMath::RandRange(0, OwnerEnemy->animins->HitMontage->GetNumSections() - 1)));
+		Owner->aicontroller->StopMovement();
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Owner->hitsound, Owner->GetActorLocation());
+		Owner->bIshit = true;
+		Owner->HitTimer = FMath::FRandRange(1.4, 2.f);
+		Owner->animins->Montage_Play(Owner->animins->HitMontage);
+		Owner->animins->Montage_JumpToSection(Owner->animins->HitMontage->GetSectionName(FMath::RandRange(0, Owner->animins->HitMontage->GetNumSections() - 1)));
 	}
 }

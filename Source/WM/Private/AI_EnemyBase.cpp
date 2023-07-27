@@ -16,6 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "AC_AI_Hp.h"
 #include <Components/PawnNoiseEmitterComponent.h>
+#include "Sound/SoundCue.h"
 // Sets default values
 AAI_EnemyBase::AAI_EnemyBase()
 {
@@ -26,13 +27,10 @@ AAI_EnemyBase::AAI_EnemyBase()
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> tempSkel(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/SKM_Quinn.SKM_Quinn'"));
 	AutoPossessAI = EAutoPossessAI::Disabled;
-	idleComp = CreateDefaultSubobject<UAC_AI_NonCombat>(TEXT("ACNonCombat"));
-	battComp = CreateDefaultSubobject<UAC_AI_Combat>(TEXT("ACCombat"));
-	hpComp = CreateDefaultSubobject<UAC_AI_Hp>(TEXT("ACHp"));
 
 	FTransform tempTrans;
 
-	//#pragma region SetCapsuleInMesh
+	#pragma region SetCapsuleInMesh
 	//tempTrans.SetLocation(FVector(0, -9, 4));
 	//tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(0.f, 90.f, 0.f)));
 	//tempTrans.SetScale3D(FVector(.4, .4, .15));
@@ -93,7 +91,7 @@ AAI_EnemyBase::AAI_EnemyBase()
 	//Colcapsules.Add(capUar);
 	//Colcapsules.Add(capUll);
 	//Colcapsules.Add(capUlr);
-	//#pragma endregion SetCapsuleInMesh
+	#pragma endregion SetCapsuleInMesh
 
 	tempTrans.SetLocation(FVector(1, -13.8, 2.65));
 	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(90.f, -75.f, -90.f)));
@@ -117,13 +115,15 @@ AAI_EnemyBase::AAI_EnemyBase()
 	PawnSensing->SetPeripheralVisionAngle(60);
 	GetCharacterMovement()->MaxWalkSpeed = 200;
 
+	
+
 	if (tempSkel.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(tempSkel.Object);
 		GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 		GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
 	}
-
+	
 	PawnNoiseEmitter = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
 	PawnNoiseEmitter->bAutoActivate = true;
 }
@@ -137,11 +137,6 @@ void AAI_EnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
 	SmoothDir = GetActorForwardVector();
-	idleComp->OwnerEnemy = this;
-	battComp->OwnerEnemy = this;
-	hpComp->OwnerEnemy = this;
-	PawnSensing->OnSeePawn.AddDynamic(this, &AAI_EnemyBase::OnSeePawn);
-	PawnSensing->OnHearNoise.AddDynamic(this, &AAI_EnemyBase::OnHearNoise);
 	aicontroller = GetWorld()->SpawnActor<AAIController>(AAIController::StaticClass(), GetActorTransform());
 	aicontroller->Possess(this);
 	animins = Cast<UAI_EnemyAnimInstance> (GetMesh()->GetAnimInstance());
@@ -157,6 +152,7 @@ void AAI_EnemyBase::BeginPlay()
 	//	}
 	//}
 }
+
 void AAI_EnemyBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -168,136 +164,44 @@ void AAI_EnemyBase::Tick(float DeltaTime)
 			bIshit = false;
 		}
 	}
-}
-
-FHitResult AAI_EnemyBase::LineTraceSocket(FName SocketName, ACharacter* TargetCharacter)
-{
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-	FHitResult Hit;
-	FVector TraceStart = GetMesh()->GetSocketLocation(FName(TEXT("head")));
-	FVector TraceEnd = TargetCharacter->GetMesh()->GetSocketLocation(SocketName);
-	GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_GameTraceChannel4, QueryParams);
-	//DrawDebugLine(GetWorld(), TraceStart, Hit.Location, FColor::Blue, false, 1);
-	return Hit;
-}
-
-void AAI_EnemyBase::OnSeePawn(APawn* OtherPawn)
-{
-	if (bIsdie || bIshit) return;
-	AMyPlayer* player = Cast<AMyPlayer>(OtherPawn);
-	if (player)
-	{
-		int result = 0;
-		FHitResult HitResult;
-		HitResult = LineTraceSocket(FName("head"), player);
-		TargetBones.Empty();
-		if (HitResult.GetActor() == player)
-		{
-			result += HitResult.bBlockingHit * 80;
-			TargetBones.Add(FName("head"));
-		}
-		HitResult = LineTraceSocket(FName("spine_03"), player);
-		if (HitResult.GetActor() == player)
-		{
-			result += HitResult.bBlockingHit * 130;
-			TargetBones.Add(FName("spine_03"));
-		}
-		HitResult = LineTraceSocket(FName("hand_r"), player);
-		if (HitResult.GetActor() == player)
-		{
-			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("hand_r"));
-		}
-		HitResult = LineTraceSocket(FName("hand_l"), player);
-		if (HitResult.GetActor() == player)
-		{
-			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("hand_l"));
-		}
-		HitResult = LineTraceSocket(FName("foot_r"), player);
-		if (HitResult.GetActor() == player)
-		{
-			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("foot_r"));
-		}
-		HitResult = LineTraceSocket(FName("foot_l"), player);
-		if (HitResult.GetActor() == player)
-		{
-			result += HitResult.bBlockingHit * 30;
-			TargetBones.Add(FName("foot_l"));
-		}
-		PRINT_LOG(TEXT("%d"), result);
-		if (result > 100 - bIsBattle * 80)
-		{
-			SetAttack(player);
-		}
-	}
-}
-
-void AAI_EnemyBase::OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume)
-{
-	if (bIsdie || bIshit) return;
-	if (OtherPawn->IsA(AAI_EnemyBase::StaticClass()))
-	{
-		PRINT_LOG(TEXT("shotsound"));
-	}
-	if (Volume > .5)
-	{
-		PRINT_LOG(TEXT("hearsound"));
-		TargetDir = Location - GetActorLocation();
-		TargetDir.Normalize();
-		if (!bIsBattle)
-		{
-			aicontroller->StopMovement();
-			SetActorRotation(FRotator(0, TargetDir.Rotation().Yaw, 0));
-		}
-	}
-}
-
-void AAI_EnemyBase::SetAttack(AMyPlayer* player)
-{
-	if (bIsdie) return;
-	animins->StopAllMontages(.5);
-	Target = player;
-	SeeingTimer = 1.0;
-	if (battComp->State == ECOMBAT::HIDDEN || battComp->State == ECOMBAT::HIDDENRUN) return;
-	bUseControllerRotationYaw = false;
 	if (!bIsBattle)
 	{
-		battComp->FindAndMoveCover();
-		if (FMath::RandBool())
+		if (SeeingTimer > 0)
 		{
-			battComp->StateChange(ECOMBAT::HIDDEN);
+			threatGage += DeltaTime;
+			if (threatGage > 1)
+			{
+				OnThreat();
+			}
 		}
-		else
-		{
-			battComp->StateChange(ECOMBAT::HIDDENRUN);
-		}
-		battComp->CoverTimer = 3;
-		PawnSensing->SetPeripheralVisionAngle(90);
-		player->isInCombat++;
-		bIsBattle = true;
 	}
 	else
 	{
-		battComp->StateChange(ECOMBAT::ATTACK);
+		if (!SeeingTimer)
+		{
+			threatGage = FMath::Max(0, threatGage - DeltaTime*.1);
+		}
 	}
+}
+
+void AAI_EnemyBase::OnThreat()
+{
+	OnTreatDelegate.ExecuteIfBound();
 }
 
 void AAI_EnemyBase::SetDie()
 {
 	if (bIsdie) return;
 	AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
-	if (player && bIsBattle)
+	if (player && bIsCombat)
 	{
 		player->isInCombat--;
 		PRINT_LOG(TEXT("%d"), player->isInCombat);
 	}
 
-	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
 	GetMesh()->SetAnimClass(nullptr);
-	//GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
 	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//for (UCapsuleComponent* capsule : Colcapsules)
 	//{

@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "AI_EnemyBase.generated.h"
 
+DECLARE_DELEGATE(TreatDelegate)
+
 UCLASS()
 class WM_API AAI_EnemyBase : public ACharacter
 {
@@ -23,16 +25,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 public:
-	UPROPERTY(EditAnywhere, Category = "FSM")
-	TArray<UCapsuleComponent*> Colcapsules;
+	//UPROPERTY(EditAnywhere)
+	//TSubclassOf<class UAI_EnemyAnimInstance> animclass;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	class UStaticMeshComponent* makaComp;
-	UPROPERTY(EditAnywhere, Category = "FSM")
-	class UAC_AI_NonCombat* idleComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FSM")
-	class UAC_AI_Combat* battComp;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FSM")
-	class UAC_AI_Hp* hpComp;
+		class UAC_AI_Hp* hpComp;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	class USceneComponent* firepoint;
 	UPROPERTY(EditAnywhere, Category = "FSM")
@@ -43,6 +41,8 @@ public:
 	float HitTimer;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	bool bIsBattle;
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	bool bIsCombat;
 	//UPROPERTY(EditAnywhere, Category = "Collision")
 	//TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_GameTraceChannel2;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
@@ -51,14 +51,16 @@ public:
 	class AMyPlayer* Target;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	float SeeingTimer;
-	UPROPERTY(EditAnywhere, Category = "USERAI")
-	TArray<FName> TargetBones;
+
+
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	FVector TargetLoc;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	FVector TargetDir;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	FVector SmoothDir;
+	UPROPERTY(EditAnywhere, Category = "USERAI")
+	float threatGage = 0;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	class AAIController* aicontroller;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
@@ -71,15 +73,11 @@ public:
 	class USoundCue* hitsound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Wrap")
 	class UPawnNoiseEmitterComponent* PawnNoiseEmitter;
+
+	TreatDelegate OnTreatDelegate;
 public:
 	UFUNCTION(BlueprintCallable)
-	void OnSeePawn(APawn *OtherPawn);
-	UFUNCTION(BlueprintCallable)
-	void OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume);
-	UFUNCTION(BlueprintCallable)
-	void SetAttack(AMyPlayer* player);
+	void OnThreat();
 	UFUNCTION(BlueprintCallable)
 	void SetDie();
-	UFUNCTION(BlueprintCallable)
-	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
 };

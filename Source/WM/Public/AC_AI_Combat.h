@@ -11,6 +11,7 @@ enum class ECOMBAT : uint8
 {
 	ATTACK,
 	HIDDEN,
+	HIDDENBEWARE,
 	HIDDENRUN,
 	CHASE,
 	HOLD
@@ -36,6 +37,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	bool bIsMove;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	bool bIsFocus;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	bool bIsWall;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float FireTimer;
@@ -46,7 +49,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float CoverTimer;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
-	class AAI_EnemyBase* OwnerEnemy;
+	class AAI_EnemyBase* Owner;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	ECOMBAT State = ECOMBAT::ATTACK;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
@@ -70,10 +73,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class USoundCue* bulletsound;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class USoundCue* vocalsound;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class UParticleSystem* fireEffect;
+	UPROPERTY(EditAnywhere, Category = "USERAI")
+	TArray<FName> TargetBones;
 public:
 	UFUNCTION(BlueprintCallable)
 	void Fire();
+	UFUNCTION(BlueprintCallable)
+	void OnThreat();
 	UFUNCTION()
 	void StateAttack();
 	UFUNCTION()
@@ -87,5 +96,13 @@ public:
 	UFUNCTION()
 	void StateMoveCoverRun();
 	UFUNCTION()
+	void StateCover();
+	UFUNCTION()
 	bool FindAndMoveCover();
+	UFUNCTION(BlueprintCallable)
+	FHitResult LineTraceSocket(FName SocketName, ACharacter* TargetCharacter);
+	UFUNCTION(BlueprintCallable)
+	void OnSeePawn(APawn *OtherPawn);
+	UFUNCTION(BlueprintCallable)
+	void OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume);
 };

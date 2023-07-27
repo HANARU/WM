@@ -38,6 +38,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	AActor* currentPoint;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
+	bool patrolType = false;
+	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	FVector	TargetLoc;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	ENONCOMBAT State = ENONCOMBAT::IDLE;
@@ -47,7 +49,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	ENONCOMBAT StateBefore;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
-	class AAI_EnemyBase* OwnerEnemy;
+	class AAI_EnemyBase* Owner;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")
 	float StateTimerMin = 3;
 	UPROPERTY(EditAnywhere, Category = "FSMIDLE")

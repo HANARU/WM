@@ -25,7 +25,7 @@ public:
 public:
 	// Called every frame
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Hp)
-	class AAI_EnemyBase* OwnerEnemy;
+	class AAI_EnemyBase* Owner;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Hp)
 	float maxhp = 30;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Hp)
