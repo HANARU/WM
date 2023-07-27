@@ -25,6 +25,7 @@
 #include <Components/PawnNoiseEmitterComponent.h>
 #include <Particles/ParticleSystem.h>
 #include <UMG/Public/Components/WidgetComponent.h>
+#include "Bullet.h"
 
 
 AMyPlayer::AMyPlayer()
@@ -211,6 +212,7 @@ void AMyPlayer::Tick(float DeltaTime)
 	// 엄폐 시 Trace Line Collision을 만들어준다.
 	if(nowCovering) {
 		CoverMovement();
+		AfterCoverLineTrace(CoverToCover);
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 250, 5*DeltaTime);
 	}
 	else {
@@ -395,7 +397,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 		TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		HitResult,
 		true
 	);
@@ -424,7 +426,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 					TraceTypeQuery3,
 					false,
 					ActorsToIgnore,
-					EDrawDebugTrace::ForDuration,
+					EDrawDebugTrace::None,
 					HitResult2,
 					true
 				);
@@ -446,7 +448,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 							TraceTypeQuery1,
 							false,
 							ActorsToIgnore,
-							EDrawDebugTrace::ForDuration,
+							EDrawDebugTrace::None,
 							HitResult2,
 							true
 						);
@@ -659,7 +661,7 @@ FVector AMyPlayer::CameraLineTrace()
 		this,
 		CameraLineTraceStart,
 		CameraLineTraceEnd,
-		ETraceTypeQuery::TraceTypeQuery4,
+		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
 		EDrawDebugTrace::None,
@@ -670,6 +672,10 @@ FVector AMyPlayer::CameraLineTrace()
 	if (Hit)
 	{// 적이 맞으면 적의 해당 위치가 EndLocation이된다.
 		EndLocation = LineHitResult.Location;
+		AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(LineHitResult.GetActor());
+		if(!IsValid(Enemy))
+		// 파편 효과
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, LineHitResult.Location, FRotator(), FVector(0.3));
 	}
 
 	return EndLocation;
@@ -678,6 +684,11 @@ FVector AMyPlayer::CameraLineTrace()
 
 void AMyPlayer::Shoot()
 {
+	// 총알 
+	if(NumOfBullet > 0 ) NumOfBullet--;
+	// 탄창에 총알이 없으면 종료
+	else return;
+
 	//LineTrace 조정
 	// Line Trace 입력 값	
 	FHitResult HitResult;
@@ -688,18 +699,18 @@ void AMyPlayer::Shoot()
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel2);
 	//DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
 
-
 	// 반동
 	/*AddControllerYawInput(HorizontalRecoil);
 	AddControllerPitchInput(VerticalRecoil);*/
 
+	// 효과
 	FVector firePosition = isRifle ? M416->GetSocketLocation(FName("firePosition")) : Pistol->GetSocketLocation(FName("FirePosition"));
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, firePosition, (EndLocation - StartLocation).Rotation(), FVector(0.05));
+	// Bullet Trace
+	GetWorld()->SpawnActor<ABullet>(BulletFactory, firePosition, (EndLocation -firePosition).Rotation());
 
-	// 효과
-	//PlayShootMontage();
 
-
+	// 데미지
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
 	if(IsValid(Enemy))
 	{
@@ -734,6 +745,7 @@ void AMyPlayer::ZoomIn()
 	//SpringArm->SocketOffset.Y = -55;
 	SpringArm->SetRelativeLocation(FVector(0,0,70));
 	bUseControllerRotationYaw = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	if (nowCovering) SpringArm->TargetArmLength = 150;
 	this->SetActorRotation(FRotator(0, (PlayerCamera->GetForwardVector()*100 - GetMesh()->GetForwardVector()).Rotation().Yaw ,0));
 
@@ -773,6 +785,7 @@ void AMyPlayer::ZoomIn()
 void AMyPlayer::ZoomOut()
 {
 	SpringArm->bEnableCameraLag = true;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 	isZooming = false;
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(40, 90, 0.9);
 	SpringArm->SetRelativeLocation(FVector(0,0,60));
@@ -787,21 +800,43 @@ void AMyPlayer::ZoomOut()
 	bUseControllerRotationPitch = false;
 }
 
+void AMyPlayer::Reload()
+{
+	if (NumOfBullet == 0) {
+		Magazine -= MagazineCapacity ; NumOfBullet = MagazineCapacity;
+	}
+	else if (NumOfBullet > 0)
+	{
+		Magazine -= (MagazineCapacity - NumOfBullet); NumOfBullet = MagazineCapacity;
+	}
+}
+
 void AMyPlayer::CoverCheck(const FInputActionValue& value)
 {
-	for (int i = 0; i < 3; i++)
+	// 엄폐 상태가 아니라면 
+	if(!nowCovering)
 	{
-		bool RHit = ConverLineTrace(i * LineTraceDegree);
-		// 충돌체가 감지되면 LineTrace 중지
-		if (RHit) break;
-		bool LHit = ConverLineTrace(-i * LineTraceDegree);
-		if (LHit) break;
+		for (int i = 0; i < 3; i++)
+		{
+			bool RHit = ConverLineTrace(i * LineTraceDegree);
+			// 충돌체가 감지되면 LineTrace 중지
+			if (RHit) break;
+			bool LHit = ConverLineTrace(-i * LineTraceDegree);
+			if (LHit) break;
+		}
+	}
+
+	// 엄폐중 새로운 엄폐물 체크 
+	if (nowCovering)
+	{
+		CoverToCover = true;
 	}
 }
 
 void AMyPlayer::Covering()
 {
 
+	CoverToCover = false;
 	float temp = DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
 	//적당한 위치에 도착하면 멈춘다.
 	if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() > 0.1)
@@ -847,7 +882,7 @@ bool AMyPlayer::ConverLineTrace(float degree)
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		LineHitResult,
 		true
 	);
@@ -957,6 +992,47 @@ void AMyPlayer::CoverMovement()
 	);
 
 	rightDetect = RSHit ? true : false;
+}
+
+bool AMyPlayer::AfterCoverLineTrace(bool canGo)
+{
+	// Line Trace 입력 값
+	FVector LineTraceStart = PlayerCamera->GetComponentLocation();
+	FVector LineTraceEnd = LineTraceStart +  PlayerCamera->GetForwardVector() * 2000;
+	TArray<AActor*> ActorsToIgnore;
+
+	// Line Trace 출력값
+	FHitResult LineHitResult;
+
+	bool Hit = UKismetSystemLibrary::LineTraceSingle(
+		this,
+		LineTraceStart,
+		LineTraceEnd,
+		ETraceTypeQuery::TraceTypeQuery3,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForOneFrame,
+		LineHitResult,
+		true
+	);
+
+	if (Hit && canGo)
+	{
+		//만약 Object 식별이 되었다면 전역변수에 할당해준다.
+		CoverLineHitResult = LineHitResult;
+		// Object의 Normal Vector를 가져온다. 
+		CoverObjectNormal = LineHitResult.Normal;
+		CoverObjectNormal.Normalize();
+
+		// Object의 (위치,크기) 출력
+		LineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
+		HitActorOrigin = LineHitResult.Location;
+		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
+		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
+		isCovering = true;
+		return true;
+	}
+	else return false;
 }
 
 float AMyPlayer::GetDeltaRotate()
