@@ -12,9 +12,6 @@ AHackableActor_ctOSAP::AHackableActor_ctOSAP()
 
 void AHackableActor_ctOSAP::BeginPlay()
 {
-	WM = Cast<UWM_Instance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	ctOSMain = WM->ctOSMain;
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, ctOSMain->GetName());
 }
 
 void AHackableActor_ctOSAP::Action_Interact_Single()

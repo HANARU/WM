@@ -723,7 +723,7 @@ void AMyPlayer::Shoot()
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
 
-			Enemy->SetAttack(this);
+			Enemy->OnThreat();
 			if (Enemy->hpComp)
 			{
 				Enemy->hpComp->OnHit(4);

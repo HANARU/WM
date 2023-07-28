@@ -16,8 +16,8 @@ public:
 		class UParticleSystemComponent* FXSpark;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class AHackableActor_ctOSMain* ctOSMain;
-	
-	class UWM_Instance* WM;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UWM_Instance* WM;
 	
 public:
 	virtual void BeginPlay() override;
