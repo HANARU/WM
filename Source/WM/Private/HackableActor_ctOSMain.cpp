@@ -30,7 +30,7 @@ void AHackableActor_ctOSMain::Action_Interact_Single()
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Magenta, TEXT("Interact Activated"));
 		if(IsLV1)	{ LV1TryHackCTOS(); }
-		else
+		else if(CountAP == 1)
 		{
 			LV2TryHackCTOS();
 		}

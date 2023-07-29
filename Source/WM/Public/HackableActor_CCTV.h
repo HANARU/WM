@@ -98,4 +98,6 @@ public:
 		void OnInteractionObject(FHitResult ContactActor);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
 		void OnInteractionAI(FHitResult ContactActor);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
+		void OnTargetHacked();
 };

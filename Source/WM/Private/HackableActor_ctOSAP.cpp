@@ -16,6 +16,5 @@ void AHackableActor_ctOSAP::BeginPlay()
 
 void AHackableActor_ctOSAP::Action_Interact_Single()
 {
-	FXSpark->Activate();
-	ctOSMain->CountAP++;
+	OnTargeted();
 }

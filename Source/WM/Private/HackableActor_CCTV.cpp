@@ -208,6 +208,7 @@ void AHackableActor_CCTV::InteractionSinglePress()
 		if (TrackedEnemy->AI_Num == TEXT("2"))
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Target Hacked"));
+			OnTargetHacked();
 		}
 		else
 		{
