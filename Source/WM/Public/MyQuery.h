@@ -16,6 +16,8 @@ struct FHideLoc
 	FVector Loc = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsWall = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int openType = 0;
 };
 
 UCLASS()

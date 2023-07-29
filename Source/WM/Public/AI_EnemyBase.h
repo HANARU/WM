@@ -27,12 +27,8 @@ public:
 public:
 	//UPROPERTY(EditAnywhere)
 	//TSubclassOf<class UAI_EnemyAnimInstance> animclass;
-	UPROPERTY(EditAnywhere, Category = "FSM")
-	class UStaticMeshComponent* makaComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FSM")
-		class UAC_AI_Hp* hpComp;
-	UPROPERTY(EditAnywhere, Category = "FSM")
-	class USceneComponent* firepoint;
+	class UAC_AI_Hp* hpComp;
 	UPROPERTY(EditAnywhere, Category = "FSM")
 	bool bIsdie;
 	UPROPERTY(EditAnywhere, Category = "FSM")
@@ -47,6 +43,8 @@ public:
 	//TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_GameTraceChannel2;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	class UPawnSensingComponent* PawnSensing;
+	UPROPERTY(EditAnywhere, Category = "USERAI")
+	class UAudioComponent* audioComp;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	class AMyPlayer* Target;
 	UPROPERTY(EditAnywhere, Category = "USERAI")

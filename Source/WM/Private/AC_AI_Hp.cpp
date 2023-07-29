@@ -8,6 +8,7 @@
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "AIModule/Classes/AIController.h"
+#include <Components/AudioComponent.h>
 
 // Sets default values for this component's properties
 UAC_AI_Hp::UAC_AI_Hp()
@@ -41,10 +42,15 @@ void UAC_AI_Hp::OnHit(float dmg)
 	else
 	{
 		Owner->aicontroller->StopMovement();
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Owner->hitsound, Owner->GetActorLocation());
+		Owner->audioComp->SetSound(Owner->hitsound);
+		Owner->audioComp->Play();
 		Owner->bIshit = true;
 		Owner->HitTimer = FMath::FRandRange(1.4, 2.f);
-		Owner->animins->Montage_Play(Owner->animins->HitMontage);
-		Owner->animins->Montage_JumpToSection(Owner->animins->HitMontage->GetSectionName(FMath::RandRange(0, Owner->animins->HitMontage->GetNumSections() - 1)));
+		Owner->OnThreat();
+		if(Owner->animins)
+		{
+			Owner->animins->Montage_Play(Owner->animins->HitMontage);
+			Owner->animins->Montage_JumpToSection(Owner->animins->HitMontage->GetSectionName(FMath::RandRange(0, Owner->animins->HitMontage->GetNumSections() - 1)));
+		}
 	}
 }

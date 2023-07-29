@@ -65,6 +65,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	bool bIsSit;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	bool bIsHidden;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	int openType;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float SitTimer;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	FVector firepoint;
@@ -78,6 +82,14 @@ public:
 	class UParticleSystem* fireEffect;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	TArray<FName> TargetBones;
+
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	class UStaticMeshComponent* makaComp;
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	class USceneComponent* firepointComp;
+	UPROPERTY(EditAnywhere, Category = "FSM")
+	class UStaticMesh* makaMesh;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void Fire();

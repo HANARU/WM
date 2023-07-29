@@ -31,6 +31,8 @@ public:
 	bool bIsTerrified;
 	UPROPERTY()
 	FVector runDir;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class USoundCue* screamsound;
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn *OtherPawn);
 	UFUNCTION(BlueprintCallable)

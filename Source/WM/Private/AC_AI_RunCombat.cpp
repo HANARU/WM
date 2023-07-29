@@ -8,7 +8,8 @@
 #include <GameFramework/CharacterMovementComponent.h>
 #include <AIModule/Classes/AIController.h>
 #include "AI_EnemyAnimInstance.h"
-
+#include "Sound/SoundCue.h"
+#include <Components/AudioComponent.h>
 // Sets default values for this component's properties
 UAC_AI_RunCombat::UAC_AI_RunCombat()
 {
@@ -27,6 +28,13 @@ void UAC_AI_RunCombat::BeginPlay()
 
 	// ...
 	Owner = Cast<AAI_EnemyBase>(GetOwner());
+	if (FMath::RandRange(0, 2) == 0)
+	{
+		PRINT_LOG(TEXT("Phone"));
+		UAI_EnemyAnimInstance* animins = Cast<UAI_EnemyAnimInstance>(Owner->GetMesh()->GetAnimInstance());
+		if (animins)
+		animins->bIsPhone = true;
+	}
 	Owner->PawnSensing->OnSeePawn.AddDynamic(this, &UAC_AI_RunCombat::OnSeePawn);
 	Owner->PawnSensing->OnHearNoise.AddDynamic(this, &UAC_AI_RunCombat::OnHearNoise);
 	Owner->OnTreatDelegate.BindUObject(this, &UAC_AI_RunCombat::OnThreat);
@@ -87,6 +95,7 @@ void UAC_AI_RunCombat::OnThreat()
 				Owner->animins->Owner = Owner;
 			}
 		}
+		Owner->animins->bIsPhone = false;
 		//PRINT_LOG(TEXT("oo"));
 		//if (Owner->animclass)
 		//{
@@ -94,7 +103,6 @@ void UAC_AI_RunCombat::OnThreat()
 		//	//PRINT_LOG(TEXT("okey"));
 		//}
 	}
-	Owner->bIsBattle = true;
 	Owner->aicontroller->StopMovement();
 	if (FMath::RandBool())
 	{
@@ -107,6 +115,13 @@ void UAC_AI_RunCombat::OnThreat()
 		AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
 		runDir = Owner->GetActorLocation() - player->GetActorLocation();
 		runDir.Normalize();
+		if (!Owner->bIsBattle)
+		{
+			Owner->audioComp->SetSound(screamsound);
+			Owner->audioComp->Play();
+			//UGameplayStatics::PlaySoundAtLocation(GetWorld(), screamsound, Owner->GetActorLocation());
+		}
 	}
+	Owner->bIsBattle = true;
 }
 

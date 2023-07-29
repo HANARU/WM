@@ -17,15 +17,14 @@
 #include "AC_AI_Hp.h"
 #include <Components/PawnNoiseEmitterComponent.h>
 #include "Sound/SoundCue.h"
+#include <Components/AudioComponent.h>
 // Sets default values
 AAI_EnemyBase::AAI_EnemyBase()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMaka(TEXT("/Script/Engine.StaticMesh'/Game/3_SM/Pistol/Makarov/makarov.makarov'"));
-
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> tempSkel(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/SKM_Quinn.SKM_Quinn'"));
+	//ConstructorHelpers::FObjectFinder<USkeletalMesh> tempSkel(TEXT("/Script/Engine.SkeletalMesh'/Game/4_SK/SKM_Quinn.SKM_Quinn'"));
 	AutoPossessAI = EAutoPossessAI::Disabled;
 
 	FTransform tempTrans;
@@ -93,36 +92,20 @@ AAI_EnemyBase::AAI_EnemyBase()
 	//Colcapsules.Add(capUlr);
 	#pragma endregion SetCapsuleInMesh
 
-	tempTrans.SetLocation(FVector(1, -13.8, 2.65));
-	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(90.f, -75.f, -90.f)));
-	tempTrans.SetScale3D(FVector(.1, .1, .1));
-	makaComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("makarov"));
-	makaComp->SetupAttachment(GetMesh(), "hand_r");
-	makaComp->SetRelativeTransform(tempTrans);
-	if (tempMaka.Succeeded())
-	{
-		makaComp->SetStaticMesh(tempMaka.Object);
-	}
-
-	tempTrans.SetLocation(FVector(.2, -84, 58));
-	tempTrans.SetRotation(FQuat::MakeFromEuler(FVector(180.f, .5f, .5f)));
-	tempTrans.SetScale3D(FVector(1, 1, 1));
-	firepoint = CreateDefaultSubobject<USceneComponent>(TEXT("Fpoint"));
-	firepoint->SetupAttachment(makaComp);
-	firepoint->SetRelativeTransform(tempTrans);
-
+	audioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	audioComp->SetupAttachment(GetMesh());
 	PawnSensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
 	PawnSensing->SetPeripheralVisionAngle(60);
 	GetCharacterMovement()->MaxWalkSpeed = 200;
 
-	
+	hpComp = CreateDefaultSubobject<UAC_AI_Hp>(TEXT("HpComponent"));
 
-	if (tempSkel.Succeeded())
-	{
-		GetMesh()->SetSkeletalMesh(tempSkel.Object);
-		GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
-		GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
-	}
+	//if (tempSkel.Succeeded())
+	//{
+	//	GetMesh()->SetSkeletalMesh(tempSkel.Object);
+	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
+	GetMesh()->SetRelativeLocation(FVector(0, 0, -90));
+	//}
 	
 	PawnNoiseEmitter = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("PawnNoiseEmitter"));
 	PawnNoiseEmitter->bAutoActivate = true;
@@ -198,8 +181,9 @@ void AAI_EnemyBase::SetDie()
 		player->isInCombat--;
 		PRINT_LOG(TEXT("%d"), player->isInCombat);
 	}
-
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
+	audioComp->SetSound(deathsound);
+	audioComp->Play();
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), deathsound, GetActorLocation());
 	GetMesh()->SetAnimClass(nullptr);
 	GetMesh()->SetSimulatePhysics(true);
 	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

@@ -111,42 +111,44 @@ void AMyQuery::Tick(float DeltaTime)
 						HitActor->GetActorBounds(false, origin, boxextent);
 						bool bIsWall = (boxextent.Z > 70);
 						//PRINT_LOG(TEXT("%f"), boxextent.Z);
-						if (bIsWall)
-						{
-							FHitResult hitoneresult;
-							FVector rightVec = FVector::CrossProduct(LineHitResult.Normal, FVector::UpVector);
-							bool bOneCheck = GetWorld()->LineTraceSingleByChannel(
-								hitoneresult,
-								Loc + rightVec * 100,
-								Loc + xydir * 200 + rightVec * 100,
-								ECC_GameTraceChannel12,
-								QueryParams
-							);
-							FHitResult hittworesult;
-							FVector leftVec = FVector::CrossProduct(LineHitResult.Normal, FVector::DownVector);
-							bool bTwoCheck = GetWorld()->LineTraceSingleByChannel(
-								hittworesult,
-								Loc + leftVec * 100,
-								Loc + xydir * 200 + leftVec * 100,
-								ECC_GameTraceChannel12,
-								QueryParams
-							);
-							if (bOneCheck)
-							{
-								//DrawDebugLine(GetWorld(), Loc, Loc + rightVec * 100, FColor::Blue, false, 1);
-							}
-							if (bTwoCheck)
-							{
-								//DrawDebugLine(GetWorld(), Loc, Loc + leftVec * 100, FColor::Red, false, 1);
-							}
-							if (!(bOneCheck ^ bTwoCheck))
-							{
-								continue;
-							}
-							//DrawDebugSphere(GetWorld(), Loc, 50.f, 0, FColor::Green, false, 1);
-						}
-						//DrawDebugSphere(GetWorld(), Loc, 60.f, 10, FColor::Green, false, 1);
 						FHideLoc hideloc;
+						FHitResult hitoneresult;
+						FVector rightVec = FVector::CrossProduct(LineHitResult.Normal, FVector::UpVector);
+						bool bOneCheck = GetWorld()->LineTraceSingleByChannel(
+							hitoneresult,
+							Loc + rightVec * 100,
+							Loc + xydir * 200 + rightVec * 100,
+							ECC_GameTraceChannel12,
+							QueryParams
+						);
+						FHitResult hittworesult;
+						FVector leftVec = FVector::CrossProduct(LineHitResult.Normal, FVector::DownVector);
+						bool bTwoCheck = GetWorld()->LineTraceSingleByChannel(
+							hittworesult,
+							Loc + leftVec * 100,
+							Loc + xydir * 200 + leftVec * 100,
+							ECC_GameTraceChannel12,
+							QueryParams
+						);
+						if (bOneCheck)
+						{
+							//DrawDebugLine(GetWorld(), Loc, Loc + rightVec * 100, FColor::Blue, false, 1);
+							hideloc.openType = 1;
+						}
+						if (bTwoCheck)
+						{
+							//DrawDebugLine(GetWorld(), Loc, Loc + leftVec * 100, FColor::Red, false, 1);
+							if(hideloc.openType == 1)
+								hideloc.openType = 3;
+							else
+								hideloc.openType = 2;
+						}
+						if (!(bOneCheck ^ bTwoCheck))
+						{
+							continue;
+						}
+							//DrawDebugSphere(GetWorld(), Loc, 50.f, 0, FColor::Green, false, 1);
+						//DrawDebugSphere(GetWorld(), Loc, 60.f, 10, FColor::Green, false, 1);
 						hideloc.Loc = Loc;
 						hideloc.bIsWall = bIsWall;
 						coverArray.Add(hideloc);
