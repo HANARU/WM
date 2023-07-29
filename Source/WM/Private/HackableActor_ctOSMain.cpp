@@ -22,6 +22,10 @@ void AHackableActor_ctOSMain::Tick(float DeltaTime)
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Magenta, TEXT("Overlap on ctOS Main"));
 	}
+	else
+	{
+		BodyMesh->SetRenderCustomDepth(false);
+	}
 }
 
 void AHackableActor_ctOSMain::Action_Interact_Single()
