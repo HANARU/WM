@@ -634,11 +634,12 @@ void AMyPlayer::TrackInteractable()
 			{
 				CCTV = Cast<ACCTV>(HitResult.GetActor());
 			}
-
 			else if (HitResult.GetActor()->IsA(AHackableActor_CCTV::StaticClass()))
 			{
 				HackedCCTV = Cast<AHackableActor_CCTV>(HitResult.GetActor());
 				OnInteractionCCTV(HitResult);
+				HackedCCTV->CameraSupport->SetRenderCustomDepth(true);
+				HackedCCTV->CameraBody->SetRenderCustomDepth(true);
 				CCTVUi = HackedCCTV->InteractableWidget;
 				CCTVUi->SetVisibility(true);
 				return;
@@ -647,6 +648,7 @@ void AMyPlayer::TrackInteractable()
 			{
 				HackableActor = Cast<AHackableActor>(HitResult.GetActor());
 				OnInteractionObject(HitResult);
+				HackableActor->BodyMesh->SetRenderCustomDepth(true);
 				return;
 			}
 		}
@@ -712,8 +714,8 @@ void AMyPlayer::Shoot()
 	//DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Black, false, 2);
 
 	// 반동
-	/*AddControllerYawInput(HorizontalRecoil);
-	AddControllerPitchInput(VerticalRecoil);*/
+	AddControllerYawInput(HorizontalRecoil);
+	AddControllerPitchInput(VerticalRecoil);
 
 	// 효과
 	FVector firePosition = isRifle ? M416->GetSocketLocation(FName("firePosition")) : Pistol->GetSocketLocation(FName("FirePosition"));
@@ -827,6 +829,11 @@ void AMyPlayer::Reload()
 	{
 		NumOfBullet = Magazine; Magazine = 0;
 	}
+}
+
+void AMyPlayer::GetAttacked()
+{
+
 }
 
 void AMyPlayer::CoverCheck(const FInputActionValue& value)

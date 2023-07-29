@@ -262,6 +262,8 @@ public:
 		void ZoomOut();
 	UFUNCTION(BlueprintCallable)
 		void Reload();
+	UFUNCTION(BlueprintCallable)
+		void GetAttacked();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Gun")
 		void PlayShootMontage();
 
@@ -276,7 +278,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int MagazineCapacity = 30;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int Magazine = 50;
+		int Magazine = 300;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int NumOfBullet = 30;
 
