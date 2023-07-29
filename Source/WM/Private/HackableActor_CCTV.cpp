@@ -131,6 +131,8 @@ void AHackableActor_CCTV::TrackInteractable()
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, HitActor->GetName());
 				TrackedOtherCCTV = Cast<AHackableActor_CCTV>(HitActor);
 				OnInteractionCCTV(HitResult);
+				TrackedOtherCCTV->CameraSupport->SetRenderCustomDepth(true);
+				TrackedOtherCCTV->CameraBody->SetRenderCustomDepth(true);
 				OtherCCTVUI = TrackedOtherCCTV->InteractableWidget;
 				OtherCCTVUI->SetVisibility(true);
 				bIsTrackingCCTV = true;
@@ -141,6 +143,7 @@ void AHackableActor_CCTV::TrackInteractable()
 				GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, HitActor->GetName());
 				HackableActor = Cast<AHackableActor>(HitActor);
 				OnInteractionObject(HitResult);
+				HackableActor->BodyMesh->SetRenderCustomDepth(true);
 				bIsTrackingObject = true;
 				return;
 			}
@@ -150,6 +153,7 @@ void AHackableActor_CCTV::TrackInteractable()
 				//GEngine->AddOnScreenDebugMessage(-1, 0.001, FColor::Red, ObjName);
 				TrackedEnemy = Cast<AAI_EnemyBase>(HitActor);
 				OnInteractionAI(HitResult);
+				TrackedEnemy->GetMesh()->SetRenderCustomDepth(true);
 				bIsTrackingAI = true;
 				return;
 			}
@@ -160,6 +164,7 @@ void AHackableActor_CCTV::TrackInteractable()
 			bIsTrackingAI = false;
 			bIsTrackingObject = false;
 			bIsTrackingCCTV = false;
+
 		}
 	}
 	EndInteraction();
@@ -222,6 +227,8 @@ void AHackableActor_CCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController
 	bIsTrackingAI = false;
 	bIsTrackingObject = false;
 	bIsTrackingCCTV = false;
+
+	OnDisableProcess();
 
 	CCTV2Player = LoadObject<USoundWave>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/5_Sound/SFX/SC_CCTV2Player.SC_CCTV2Player'"));
 	UGameplayStatics::PlaySound2D(GetWorld(), CCTV2Player);

@@ -100,4 +100,6 @@ public:
 		void OnInteractionAI(FHitResult ContactActor);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
 		void OnTargetHacked();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")
+		void OnDisableProcess();
 };
