@@ -212,11 +212,22 @@ void AMyPlayer::Tick(float DeltaTime)
 	// 엄폐 시 Trace Line Collision을 만들어준다.
 	if(nowCovering) {
 		CoverMovement();
-		AfterCoverLineTrace(CoverToCover);
+		if(IsPossessing)AfterCoverLineTrace(CoverToCover);
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 250, 5*DeltaTime);
 	}
 	else {
+		isShowCoverUI =false;
 		SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, 150, 5*DeltaTime);
+	}
+
+	if (isArmed)
+	{
+		UGameplayStatics::GetPlayerCameraManager(GetWorld(),0)->ViewPitchMax = 60;
+		UGameplayStatics::GetPlayerCameraManager(GetWorld(),0)->ViewPitchMin = -60;
+	}
+	else {
+		UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->ViewPitchMax = 90;
+		UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->ViewPitchMin = -90;
 	}
 
 
@@ -397,7 +408,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 		TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForDuration,
 		HitResult,
 		true
 	);
@@ -426,7 +437,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 					TraceTypeQuery3,
 					false,
 					ActorsToIgnore,
-					EDrawDebugTrace::None,
+					EDrawDebugTrace::ForDuration,
 					HitResult2,
 					true
 				);
@@ -448,7 +459,7 @@ void AMyPlayer::Vault(const FInputActionValue& value)
 							TraceTypeQuery1,
 							false,
 							ActorsToIgnore,
-							EDrawDebugTrace::None,
+							EDrawDebugTrace::ForDuration,
 							HitResult2,
 							true
 						);
@@ -642,6 +653,7 @@ void AMyPlayer::TrackInteractable()
 
 		// 아무것도 맞지 않았다면
 		EndInteraction();
+		isShowCoverUI= true;
 		if (CCTVUi)	CCTVUi->SetVisibility(false);
 	}
 }
@@ -715,7 +727,7 @@ void AMyPlayer::Shoot()
 	if(IsValid(Enemy))
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, HitResult.GetComponent()->GetName());
-		if (HitResult.GetComponent()->GetName() == "cap_head")
+		if (HitResult.BoneName == "head")
 		{
 			Enemy->SetDie();
 		}
@@ -741,6 +753,8 @@ void AMyPlayer::ZoomIn()
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Zoom"));
 	SpringArm->bEnableCameraLag = false;
 	isZooming = true;
+	
+
 	PlayerCamera->FieldOfView = FMath::Lerp<float>(90, 40, 0.9);
 	//SpringArm->SocketOffset.Y = -55;
 	SpringArm->SetRelativeLocation(FVector(0,0,70));
@@ -802,12 +816,16 @@ void AMyPlayer::ZoomOut()
 
 void AMyPlayer::Reload()
 {
-	if (NumOfBullet == 0) {
+	if (NumOfBullet == 0 && Magazine - MagazineCapacity >= 0 ) {
 		Magazine -= MagazineCapacity ; NumOfBullet = MagazineCapacity;
 	}
-	else if (NumOfBullet > 0)
+	else if (NumOfBullet > 0 && Magazine - (MagazineCapacity - NumOfBullet) >= 0)
 	{
 		Magazine -= (MagazineCapacity - NumOfBullet); NumOfBullet = MagazineCapacity;
+	}
+	else
+	{
+		NumOfBullet = Magazine; Magazine = 0;
 	}
 }
 
@@ -887,7 +905,7 @@ bool AMyPlayer::ConverLineTrace(float degree)
 		true
 	);
 
-	if(Hit) 
+	if(Hit && LineHitResult.Normal.Z == 0) 
 	{
 		//만약 Object 식별이 되었다면 전역변수에 할당해준다.
 		CoverLineHitResult = LineHitResult;
@@ -929,7 +947,7 @@ void AMyPlayer::CoverMovement()
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForOneFrame,
 		HitResult,
 		true
 	);
@@ -998,7 +1016,7 @@ bool AMyPlayer::AfterCoverLineTrace(bool canGo)
 {
 	// Line Trace 입력 값
 	FVector LineTraceStart = PlayerCamera->GetComponentLocation();
-	FVector LineTraceEnd = LineTraceStart +  PlayerCamera->GetForwardVector() * 2000;
+	FVector LineTraceEnd = LineTraceStart +  PlayerCamera->GetForwardVector() * 1000;
 	TArray<AActor*> ActorsToIgnore;
 
 	// Line Trace 출력값
@@ -1011,12 +1029,16 @@ bool AMyPlayer::AfterCoverLineTrace(bool canGo)
 		ETraceTypeQuery::TraceTypeQuery3,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		LineHitResult,
 		true
 	);
 
-	if (Hit && canGo)
+	// UI를 띄우기 위한 변수 대입 
+	isShowCoverUI = Hit && !isZooming && !LineHitResult.Normal.Z && LineHitResult.GetActor()->GetName()!=CoverLineHitResult.GetActor()->GetName()? true : false;
+	
+	//  엄폐 버튼 C가 눌러진다면 변수 재할당
+	if (Hit && canGo && isShowCoverUI)
 	{
 		//만약 Object 식별이 되었다면 전역변수에 할당해준다.
 		CoverLineHitResult = LineHitResult;
@@ -1030,9 +1052,14 @@ bool AMyPlayer::AfterCoverLineTrace(bool canGo)
 		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
 		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
 		isCovering = true;
+		CoverToCover =false;
 		return true;
 	}
-	else return false;
+	else 
+	{
+		CoverToCover =false;
+		return false;
+	}
 }
 
 float AMyPlayer::GetDeltaRotate()

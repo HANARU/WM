@@ -190,6 +190,8 @@ public:
 	bool leftDetect = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cover")
 	bool rightDetect =false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cover")
+	bool isShowCoverUI =false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool canGoDetect = false;
 	bool attached = false;
@@ -274,7 +276,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int MagazineCapacity = 30;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int Magazine = 300;
+		int Magazine = 50;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int NumOfBullet = 30;
 
