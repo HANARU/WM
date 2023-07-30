@@ -128,7 +128,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		float CurrentTime; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		UUserWidget* FocusedInteractable;
+		TSubclassOf<UUserWidget> FocusedInteractable;
+//		UUserWidget* FocusedInteractable;
 	class UWidgetComponent* CCTVUi;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

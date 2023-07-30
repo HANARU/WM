@@ -52,8 +52,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bIsTrackingCCTV = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		UUserWidget* FocusedInteractable;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TSubclassOf<UUserWidget> FocusedInteractable;
+		//UUserWidget* FocusedInteractable;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UWidgetComponent* OtherObjectUI;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

@@ -168,11 +168,11 @@ AMyPlayer::AMyPlayer()
 	}*/
 
 	// UMG
-	ConstructorHelpers::FObjectFinder<UUserWidget> TempUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/2_BP/BP_UI/UI_FocusedInteractableActor.UI_FocusedInteractableActor'"));
+	ConstructorHelpers::FClassFinder<UUserWidget> TempUI(TEXT("'/Game/2_BP/BP_UI/UI_FocusedInteractableActor'"));
 	
 	if (TempUI.Succeeded())
 	{
-		FocusedInteractable = TempUI.Object;
+		FocusedInteractable = TempUI.Class;
 	}
 
 	ConstructorHelpers::FObjectFinder<UNiagaraSystem> TempParticle(TEXT("/Script/Niagara.NiagaraSystem'/Game/6_MISC/FX/BulletImpact/FX/NiagaraSystems/NS_AR_Muzzleflash_1_ONCE.NS_AR_Muzzleflash_1_ONCE'"));

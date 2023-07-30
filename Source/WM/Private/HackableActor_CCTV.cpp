@@ -1,4 +1,4 @@
-#include "HackableActor_CCTV.h"
+ #include "HackableActor_CCTV.h"
 #include "MyPlayer.h"
 #include "WM_Instance.h"
 #include "AI_EnemyBase.h"
@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetStringLibrary.h"
 #include <UMG/Public/Components/WidgetComponent.h>
+#include "Blueprint/UserWidget.h"
 
 AHackableActor_CCTV::AHackableActor_CCTV()
 {
@@ -58,11 +59,11 @@ AHackableActor_CCTV::AHackableActor_CCTV()
 	InteractableWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractableWidget"));
 	InteractableWidget->SetupAttachment(CameraBody);
 
-	ConstructorHelpers::FObjectFinder<UUserWidget> TempUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/2_BP/BP_UI/UI_FocusedInteractableActor.UI_FocusedInteractableActor'"));
+	ConstructorHelpers::FClassFinder<UUserWidget> TempUI(TEXT("'/Game/2_BP/BP_UI/UI_FocusedInteractableActor'"));
 
 	if (TempUI.Succeeded())
 	{
-		FocusedInteractable = TempUI.Object;
+		FocusedInteractable = TempUI.Class;
 	}
 }
 
