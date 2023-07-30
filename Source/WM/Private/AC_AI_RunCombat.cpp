@@ -10,6 +10,7 @@
 #include "AI_EnemyAnimInstance.h"
 #include "Sound/SoundCue.h"
 #include <Components/AudioComponent.h>
+#include <AIModule/Classes/Perception/PawnSensingComponent.h>
 // Sets default values for this component's properties
 UAC_AI_RunCombat::UAC_AI_RunCombat()
 {
@@ -30,7 +31,6 @@ void UAC_AI_RunCombat::BeginPlay()
 	Owner = Cast<AAI_EnemyBase>(GetOwner());
 	if (FMath::RandRange(0, 2) == 0)
 	{
-		PRINT_LOG(TEXT("Phone"));
 		UAI_EnemyAnimInstance* animins = Cast<UAI_EnemyAnimInstance>(Owner->GetMesh()->GetAnimInstance());
 		if (animins)
 		animins->bIsPhone = true;

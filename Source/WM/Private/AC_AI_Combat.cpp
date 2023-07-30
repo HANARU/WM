@@ -230,7 +230,8 @@ void UAC_AI_Combat::Fire()
 			AMyPlayer* player = Cast<AMyPlayer>(HitResult.GetActor());
 			if (player)
 			{
-				count++;
+				// 플레이어 피격 모션 호출
+				player->GetAttacked();
 				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 50, 12, FColor::Red, false, 1);
 			}
 			else if(HitResult.GetActor()->IsA(AAI_EnemyBase::StaticClass()))

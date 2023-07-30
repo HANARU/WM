@@ -262,7 +262,7 @@ public:
 		void ZoomOut();
 	UFUNCTION(BlueprintCallable)
 		void Reload();
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintImplementableEvent)
 		void GetAttacked();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Gun")
 		void PlayShootMontage();
@@ -290,7 +290,9 @@ public:
 	bool isArmed = false;
 
 	UPROPERTY(EditDefaultsOnly, Category="Gun")
-	class UParticleSystem* FireEffect;
+	class UNiagaraSystem* BulletImpact;
+	UPROPERTY(EditDefaultsOnly, Category="Gun")
+	class UNiagaraSystem* FireEffect;
 	UPROPERTY(EditDefaultsOnly, Category="Gun")
 	TSubclassOf<class ABullet> BulletFactory;
 };

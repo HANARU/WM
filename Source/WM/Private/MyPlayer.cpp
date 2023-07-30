@@ -26,6 +26,9 @@
 #include <Particles/ParticleSystem.h>
 #include <UMG/Public/Components/WidgetComponent.h>
 #include "Bullet.h"
+#include <AIModule/Classes/Blueprint/AIBlueprintHelperLibrary.h>
+#include <../Plugins/FX/Niagara/Source/Niagara/Classes/NiagaraSystem.h>
+#include <../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h>
 
 
 AMyPlayer::AMyPlayer()
@@ -172,10 +175,16 @@ AMyPlayer::AMyPlayer()
 		FocusedInteractable = TempUI.Object;
 	}
 
-	ConstructorHelpers::FObjectFinder<UParticleSystem> TempParticle(TEXT("/Script/Engine.ParticleSystem'/Game/6_MISC/FX/MuzzleFire/FX_Monsters/FX_Monster_Chicken/P_ChickenMaster_MuzzleFlash_01.P_ChickenMaster_MuzzleFlash_01'"));
+	ConstructorHelpers::FObjectFinder<UNiagaraSystem> TempParticle(TEXT("/Script/Niagara.NiagaraSystem'/Game/6_MISC/FX/BulletImpact/FX/NiagaraSystems/NS_AR_Muzzleflash_1_ONCE.NS_AR_Muzzleflash_1_ONCE'"));
 	if (TempParticle.Succeeded())
 	{
 		FireEffect = TempParticle.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UNiagaraSystem> TempImpact(TEXT("/Script/Niagara.NiagaraSystem'/Game/6_MISC/FX/BulletImpact/FX/NiagaraSystems/NS_Impact_1.NS_Impact_1'"));
+	if (TempParticle.Succeeded())
+	{
+		BulletImpact = TempImpact.Object;
 	}
 
 }
@@ -689,7 +698,8 @@ FVector AMyPlayer::CameraLineTrace()
 		AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(LineHitResult.GetActor());
 		if(!IsValid(Enemy))
 		// 파편 효과
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, LineHitResult.Location, FRotator(), FVector(0.3));
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BulletImpact, LineHitResult.Location, FRotator(), FVector(2));
+
 	}
 
 	return EndLocation;
@@ -719,7 +729,7 @@ void AMyPlayer::Shoot()
 
 	// 효과
 	FVector firePosition = isRifle ? M416->GetSocketLocation(FName("firePosition")) : Pistol->GetSocketLocation(FName("FirePosition"));
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, firePosition, (EndLocation - StartLocation).Rotation(), FVector(0.05));
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FireEffect, firePosition, (EndLocation - StartLocation).Rotation(), FVector(2));
 	// Bullet Trace
 	GetWorld()->SpawnActor<ABullet>(BulletFactory, firePosition, (EndLocation -firePosition).Rotation());
 
@@ -831,11 +841,6 @@ void AMyPlayer::Reload()
 	}
 }
 
-void AMyPlayer::GetAttacked()
-{
-
-}
-
 void AMyPlayer::CoverCheck(const FInputActionValue& value)
 {
 	// 엄폐 상태가 아니라면 
@@ -864,7 +869,7 @@ void AMyPlayer::Covering()
 	CoverToCover = false;
 	float temp = DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
 	//적당한 위치에 도착하면 멈춘다.
-	if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() > 0.1)
+	if (DistanceToCoverObject - (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() > 0.01)
 	{
 		// 가까워진 값만큼 다시 초기화
 		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size();
@@ -1021,10 +1026,67 @@ void AMyPlayer::CoverMovement()
 
 bool AMyPlayer::AfterCoverLineTrace(bool canGo)
 {
+	// 코너 이동을 위한
+	FVector CornerLineTraceStart = rightDetect ? GetMesh()->GetComponentLocation() + GetCapsuleComponent()->GetRightVector()*50 + GetCapsuleComponent()->GetUpVector()*100  + GetCapsuleComponent()->GetForwardVector()*100: GetMesh()->GetComponentLocation() - GetCapsuleComponent()->GetRightVector() * 150;
+	FVector CornerLineTraceEnd = CornerLineTraceStart - GetCapsuleComponent()->GetForwardVector() * 150;
+	TArray<AActor*> ActorsToIgnore;
+
+	// Line Trace 출력값
+	FHitResult CornerLineHitResult;
+	bool CornerHit = false; 
+	if(canGoDetect==false)
+	CornerHit = UKismetSystemLibrary::LineTraceSingle(
+		this,
+		CornerLineTraceStart,
+		CornerLineTraceEnd,
+		ETraceTypeQuery::TraceTypeQuery3,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForOneFrame,
+		CornerLineHitResult,
+		true
+	);
+
+	if (CornerHit) {
+		float deltaRotate = GetDeltaRotate();
+		UE_LOG(LogTemp,Warning,TEXT("%f"), deltaRotate);
+		if (rightDetect && deltaRotate<-20 && deltaRotate>-140 && canGo) {
+			//UAIBlueprintHelperLibrary::SimpleMoveToLocation(UGameplayStatics::GetPlayerController(GetWorld(), 0), FVector(-830, -881, 0));
+			//UE_LOG(LogTemp,Warning,TEXT("%f , %f"), CornerLineHitResult.Location.X, CornerLineHitResult.Location.Y);
+			CoverLineHitResult = CornerLineHitResult;
+			// Object의 Normal Vector를 가져온다. 
+			CoverObjectNormal = CornerLineHitResult.Normal;
+			CoverObjectNormal.Normalize();
+
+			// Object의 (위치,크기) 출력
+			CornerLineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
+			HitActorOrigin = CornerLineHitResult.Location;
+			DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
+			// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
+			isCovering = true;
+		}
+		else if(leftDetect && deltaRotate < -40 && deltaRotate>-140 && canGo){
+			//만약 Object 식별이 되었다면 전역변수에 할당해준다.
+			CoverLineHitResult = CornerLineHitResult;
+			// Object의 Normal Vector를 가져온다. 
+			CoverObjectNormal = CornerLineHitResult.Normal;
+			CoverObjectNormal.Normalize();
+
+			// Object의 (위치,크기) 출력
+			CornerLineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
+			HitActorOrigin = CornerLineHitResult.Location;
+			DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
+			// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
+			isCovering = true;
+			CoverToCover = false;
+		}
+	}
+
+	// 엄폐 이동을 위한
 	// Line Trace 입력 값
 	FVector LineTraceStart = PlayerCamera->GetComponentLocation();
 	FVector LineTraceEnd = LineTraceStart +  PlayerCamera->GetForwardVector() * 1000;
-	TArray<AActor*> ActorsToIgnore;
+	//TArray<AActor*> ActorsToIgnore;
 
 	// Line Trace 출력값
 	FHitResult LineHitResult;
@@ -1042,7 +1104,7 @@ bool AMyPlayer::AfterCoverLineTrace(bool canGo)
 	);
 
 	// UI를 띄우기 위한 변수 대입 
-	isShowCoverUI = Hit && !isZooming && !LineHitResult.Normal.Z && LineHitResult.GetActor()->GetName()!=CoverLineHitResult.GetActor()->GetName()? true : false;
+	isShowCoverUI = Hit && !isZooming && !LineHitResult.Normal.Z && LineHitResult.GetActor()->GetName()!= CoverLineHitResult.GetActor()->GetName()? true : false;
 	
 	//  엄폐 버튼 C가 눌러진다면 변수 재할당
 	if (Hit && canGo && isShowCoverUI)
