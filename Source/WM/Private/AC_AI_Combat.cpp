@@ -63,10 +63,13 @@ void UAC_AI_Combat::BeginPlay()
 	firepointComp = NewObject<USceneComponent>(Owner, FName(TEXT("Fpoint")));
 	firepointComp->RegisterComponent();
 	firepointComp->AttachToComponent(makaComp, FAttachmentTransformRules::KeepRelativeTransform);
+	firepointComp->SetRelativeTransform(tempTrans);
 
 	Owner->PawnSensing->OnSeePawn.AddDynamic(this, &UAC_AI_Combat::OnSeePawn);
 	Owner->PawnSensing->OnHearNoise.AddDynamic(this, &UAC_AI_Combat::OnHearNoise);
 	Owner->OnTreatDelegate.BindUObject(this, &UAC_AI_Combat::OnThreat);
+
+	VocalTimer = FMath::RandRange(3, 6);
 }
 
 
@@ -91,6 +94,19 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 		}
 		Owner->animins->bIsSit = bIsSit;
 		SitTimer = FMath::RandRange(5, 10);
+	}
+	VocalTimer = FMath::Max(0, VocalTimer - DeltaTime);
+	if (VocalTimer == 0)
+	{
+		if (FMath::RandRange(0, 3) == 0)
+		{
+			Owner->audioComp->SetSound(vocalsound);
+			Owner->audioComp->Play();
+			PRINT_LOG(TEXT("Say"));
+
+			//UGameplayStatics::PlaySoundAtLocation(GetWorld(), vocalsound, Owner->GetActorLocation());
+		}
+		VocalTimer = FMath::RandRange(3, 6);
 	}
 	if (Owner && Owner->bIsBattle)
 	{
@@ -159,7 +175,7 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 		if (Owner->Target && Owner->SeeingTimer > 0)
 		{
 			Owner->SetActorRotation(FRotator(0, (Owner->Target->GetActorLocation() - Owner->GetActorLocation()).Rotation().Yaw, 0));
-			FVector SubDir = firepoint - firepointComp->GetComponentLocation();
+			FVector SubDir = Owner->TargetLoc - firepointComp->GetComponentLocation();
 			Owner->animins->aimDir = SubDir.Rotation().Pitch;
 			Fire();
 		}
@@ -284,14 +300,7 @@ void UAC_AI_Combat::OnThreat()
 		//	//PRINT_LOG(TEXT("okey"));
 		//}
 	}
-	Owner->animins->bIsCombat = Owner->bIsBattle;
 	AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
-	if (FMath::RandRange(0, 20) == 0)
-	{
-		Owner->audioComp->SetSound(vocalsound);
-		Owner->audioComp->Play();
-		//UGameplayStatics::PlaySoundAtLocation(GetWorld(), vocalsound, Owner->GetActorLocation());
-	}
 	Owner->animins->StopAllMontages(.5);
 	Owner->Target = player;
 	Owner->SeeingTimer = 1.0;
@@ -315,6 +324,13 @@ void UAC_AI_Combat::OnThreat()
 		player->isInCombat++;
 		Owner->bIsBattle = true;
 		Owner->bIsCombat = true;
+		Owner->animins->bIsCombat = Owner->bIsBattle;
+		if (FMath::RandRange(0, 3) == 0)
+		{
+			Owner->audioComp->SetSound(vocalsound);
+			Owner->audioComp->Play();
+			//UGameplayStatics::PlaySoundAtLocation(GetWorld(), vocalsound, Owner->GetActorLocation());
+		}
 	}
 	else
 	{

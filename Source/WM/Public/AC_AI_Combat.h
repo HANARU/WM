@@ -49,6 +49,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	float CoverTimer;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	float VocalTimer;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class AAI_EnemyBase* Owner;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	ECOMBAT State = ECOMBAT::ATTACK;

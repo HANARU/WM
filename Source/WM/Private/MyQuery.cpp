@@ -36,10 +36,11 @@ void AMyQuery::Tick(float DeltaTime)
 	if (repeatTimer == 0)
 	{
 		AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
-		SetActorLocation(player->GetActorLocation());
 		coverArray.Empty();
 		if (player && naviSystem)
 		{
+			if (bIsFollow)
+				SetActorLocation(player->GetActorLocation());
 			for (int i = 0; i < width; i++)
 			{
 				for (int j = 0; j < height; j++)

@@ -37,6 +37,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 public:
 	UPROPERTY(EditAnywhere, Category = "Query")
+	bool bIsFollow = true;
+	UPROPERTY(EditAnywhere, Category = "Query")
 	int width = 40;
 	UPROPERTY(EditAnywhere, Category = "Query")
 	int height = 40;
