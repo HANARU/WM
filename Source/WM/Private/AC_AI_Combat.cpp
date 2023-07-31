@@ -310,7 +310,7 @@ void UAC_AI_Combat::Fire()
 			else
 			{
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), wallhitsound, HitResult.Location);
-				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), hitEffect, HitResult.Location, FRotator(), FVector(2));
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), hitEffect, HitResult.Location, (HitResult.ImpactNormal * FVector(-1)).Rotation(), FVector(2));
 			}
 		}
 		FireTimer = FireTimerMax;
