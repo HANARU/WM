@@ -18,6 +18,7 @@
 #include "Chaos/Rotation.h"
 #include "AC_AI_Hp.h"
 #include <Components/AudioComponent.h>
+#include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
 // Sets default values for this component's properties
 UAC_AI_Combat::UAC_AI_Combat()
 {
@@ -29,6 +30,16 @@ UAC_AI_Combat::UAC_AI_Combat()
 	if (tempMaka.Succeeded())
 	{
 		makaMesh = tempMaka.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UNiagaraSystem> tempFireEffect(TEXT("/Script/Niagara.NiagaraSystem'/Game/6_MISC/FX/BulletImpact/FX/NiagaraSystems/NS_AR_Muzzleflash_1_ONCE.NS_AR_Muzzleflash_1_ONCE'"));
+	if (tempFireEffect.Succeeded())
+	{
+		fireEffect = tempFireEffect.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UNiagaraSystem> tempHitEffect(TEXT("/Script/Niagara.NiagaraSystem'/Game/6_MISC/FX/BulletImpact/FX/NiagaraSystems/NS_Impact_1.NS_Impact_1'"));
+	if (tempHitEffect.Succeeded())
+	{
+		hitEffect = tempHitEffect.Object;
 	}
 	// ...
 }
@@ -102,7 +113,7 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 		{
 			Owner->audioComp->SetSound(vocalsound);
 			Owner->audioComp->Play();
-			PRINT_LOG(TEXT("Say"));
+			//PRINT_LOG(TEXT("Say"));
 
 			//UGameplayStatics::PlaySoundAtLocation(GetWorld(), vocalsound, Owner->GetActorLocation());
 		}
@@ -139,26 +150,29 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 		Owner->SeeingTimer -= DeltaTime;
 		if (Owner->Target)
 		{
-			if (Owner->SeeingTimer <= 0 && State == ECOMBAT::ATTACK)
+			if (Owner->SeeingTimer <= 0)
 			{
 				Owner->TargetDir = Owner->Target->GetActorLocation() - Owner->TargetLoc;
 				Owner->TargetDir.Normalize();
 				Owner->TargetLoc = Owner->Target->GetActorLocation();
 				Owner->Target = nullptr;
-				EPathFollowingRequestResult::Type result;
-				result = Owner->aicontroller->MoveToLocation(Owner->TargetLoc);
-				moveLoc = Owner->TargetLoc;
-				int random = FMath::RandRange(0, 100);
-				if (bIsSit || (result == EPathFollowingRequestResult::Failed && random > courage))
+				if (State == ECOMBAT::ATTACK)
 				{
-					Owner->aicontroller->StopMovement();
-					StateChange(ECOMBAT::HOLD);
-					StateTimer = FMath::RandRange(3, 7);
-				}
-				else
-				{
-					StateChange(ECOMBAT::CHASE);
-					Owner->GetCharacterMovement()->MaxWalkSpeed = 100;
+					EPathFollowingRequestResult::Type result;
+					result = Owner->aicontroller->MoveToLocation(Owner->TargetLoc);
+					moveLoc = Owner->TargetLoc;
+					int random = FMath::RandRange(0, 100);
+					if (bIsSit || (result == EPathFollowingRequestResult::Failed && random > courage))
+					{
+						Owner->aicontroller->StopMovement();
+						StateChange(ECOMBAT::HOLD);
+						StateTimer = FMath::RandRange(3, 7);
+					}
+					else
+					{
+						StateChange(ECOMBAT::CHASE);
+						Owner->GetCharacterMovement()->MaxWalkSpeed = 100;
+					}
 				}
 			}
 			else
@@ -184,6 +198,8 @@ void UAC_AI_Combat::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 			Owner->SetActorRotation(FRotator(0, (Owner->TargetLoc - Owner->GetActorLocation()).Rotation().Yaw, 0));
 			FVector SubDir = Owner->TargetLoc - firepointComp->GetComponentLocation();
 			Owner->animins->aimDir = SubDir.Rotation().Pitch;
+			if (FMath::RandRange(0, 5) == 0)
+			Fire();
 		}
 
 	}
@@ -197,17 +213,27 @@ void UAC_AI_Combat::Fire()
 {
 	FireTimer = FMath::Max(0, FireTimer - GetWorld()->DeltaRealTimeSeconds);
 	if (Owner->bIshit) return;
-	if (firepointComp && FireTimer == 0 && !TargetBones.IsEmpty())
+	if (firepointComp && FireTimer == 0)
 	{
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(Owner);
-		FName bonename = TargetBones[FMath::RandRange(0, TargetBones.Num() - 1)];
-		FVector boneloc = Owner->Target->GetMesh()->GetBoneLocation(bonename);
-		firepoint = boneloc;
+		FVector boneloc;
+		if (Owner->SeeingTimer > 0 && !TargetBones.IsEmpty())
+		{
+			FName bonename = TargetBones[FMath::RandRange(0, TargetBones.Num() - 1)];
+			boneloc = Owner->Target->GetMesh()->GetBoneLocation(bonename);
+			firepoint = boneloc;
+		}
+		else
+		{
+			boneloc = Owner->TargetLoc;
+			firepoint = Owner->TargetLoc;
+
+		}
 		if(Owner->Target)
-		Owner->Target->MakeNoise(1., nullptr, Owner->GetActorLocation(), 1000.);
-		float distance = FVector::Distance(Owner->GetActorLocation(), boneloc);
+			Owner->Target->MakeNoise(1., nullptr, Owner->GetActorLocation(), 1000.);
+		float distance = FVector::Distance(Owner->GetActorLocation(), firepoint);
 		float maxrand;
 		if (FMath::RandRange(0, 100) > 1)
 		{
@@ -217,21 +243,22 @@ void UAC_AI_Combat::Fire()
 		{
 			maxrand = FMath::Min(FMath::RandRange(0, 100), distance / 2);
 		}
-		FVector randvec = (boneloc - firepointComp->GetComponentLocation());
+		FVector randvec = (firepoint - firepointComp->GetComponentLocation());
 		FVector randvec2 = FVector(0, FMath::FRandRange(-1., 1.), FMath::FRandRange(-1., 1.));
 		randvec2.Normalize();
 		randvec.Normalize();
 		randvec = FVector::CrossProduct(randvec, randvec2);
-		PRINT_LOG(TEXT("%f %f %f"), randvec.X, randvec.Y, randvec.Z);
-		boneloc = boneloc + randvec * maxrand - Owner->GetActorLocation();
+		//PRINT_LOG(TEXT("%f %f %f"), randvec.X, randvec.Y, randvec.Z);
+		boneloc = firepoint + randvec * maxrand - Owner->GetActorLocation();
 		boneloc.Normalize();
 		FTransform trans;
 		trans.SetLocation(firepointComp->GetComponentLocation());
-		trans.SetRotation(FQuat::MakeFromRotator(boneloc.Rotation()));
-		trans.SetScale3D(FVector(.05, .1, .05));
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), fireEffect, trans);
+		trans.SetScale3D(FVector(2));
+		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), fireEffect, trans);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), fireEffect, trans.GetLocation(), boneloc.Rotation(), trans.GetScale3D());
 		boneloc = Owner->GetActorLocation() + boneloc * 5000;
-		DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Black, false, 1);
+
+		//DrawDebugSphere(GetWorld(), boneloc, 50, 12, FColor::Black, false, 1);
 		GetWorld()->LineTraceSingleByChannel(HitResult, firepointComp->GetComponentLocation(), boneloc, ECC_GameTraceChannel6, QueryParams);
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), firesound, firepointComp->GetComponentLocation());
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), bulletsound, firepoint, FMath::FRandRange(0., 1.));
@@ -240,37 +267,44 @@ void UAC_AI_Combat::Fire()
 		else
 			DrawDebugLine(GetWorld(), firepointComp->GetComponentLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
 		Owner->animins->Montage_Play(Owner->animins->fireMontage);
-		if (HitResult.bBlockingHit && HitResult.BoneName.ToString() != "None")
+		if (HitResult.bBlockingHit)
 		{
-			PRINT_LOG(TEXT("%s"), *HitResult.BoneName.ToString());
-			AMyPlayer* player = Cast<AMyPlayer>(HitResult.GetActor());
-			if (player)
+			//PRINT_LOG(TEXT("%s"), *HitResult.BoneName.ToString());
+			if (HitResult.BoneName.ToString() != "None")
 			{
-				// 플레이어 피격 모션 호출
-				player->GetAttacked();
-				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 50, 12, FColor::Red, false, 1);
-			}
-			else if(HitResult.GetActor()->IsA(AAI_EnemyBase::StaticClass()))
-			{
-				AAI_EnemyBase* enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
-				if (enemy)
+				AMyPlayer* player = Cast<AMyPlayer>(HitResult.GetActor());
+				if (player)
 				{
-					if (HitResult.BoneName == "head")
+					// 플레이어 피격 모션 호출
+					player->GetAttacked();
+					//DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 50, 12, FColor::Red, false, 1);
+				}
+				else if(HitResult.GetActor()->IsA(AAI_EnemyBase::StaticClass()))
+				{
+					AAI_EnemyBase* enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
+					if (enemy)
 					{
-						enemy->SetDie();
-					}
-					else
-					{
-						//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
-
-						enemy->OnThreat();
-						if (enemy->hpComp)
+						if (HitResult.BoneName == "head")
 						{
-							enemy->hpComp->OnHit(4);
+							enemy->SetDie();
+						}
+						else
+						{
+							//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Enemy Hit"));
 
+							enemy->OnThreat();
+							if (enemy->hpComp)
+							{
+								enemy->hpComp->OnHit(4);
+
+							}
 						}
 					}
 				}
+			}
+			else
+			{
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), hitEffect, HitResult.Location, FRotator(), FVector(2));
 			}
 		}
 		FireTimer = FireTimerMax;
@@ -503,7 +537,7 @@ void UAC_AI_Combat::StateMoveCover()
 {
 	if (Owner->aicontroller->GetMoveStatus() == EPathFollowingStatus::Idle)
 	{
-		PRINT_LOG(TEXT("CoverFinish"));
+		//PRINT_LOG(TEXT("CoverFinish"));
 		StateChange(ECOMBAT::ATTACK);
 		Owner->animins->openType = openType;
 	}
@@ -512,7 +546,7 @@ void UAC_AI_Combat::StateMoveCoverRun()
 {
 	if (Owner->aicontroller->GetMoveStatus() == EPathFollowingStatus::Idle)
 	{
-		PRINT_LOG(TEXT("RUNEnd"));
+		//PRINT_LOG(TEXT("RUNEnd"));
 		FRotator rot = (Owner->TargetLoc - Owner->GetActorLocation()).Rotation();
 		Owner->SetActorRotation(FRotator(0, rot.Yaw, 0));
 		Owner->bUseControllerRotationYaw = false;
@@ -546,13 +580,13 @@ bool UAC_AI_Combat::FindAndMoveCover()
 	if (getarray.IsEmpty()) return false;
 
 	hideloc = getarray[FMath::RandRange(0, getarray.Num() - 1)];
-	DrawDebugSphere(GetWorld(), hideloc.Loc, 70.f, 8, FColor::Blue, false, 5);
+	//DrawDebugSphere(GetWorld(), hideloc.Loc, 70.f, 8, FColor::Blue, false, 5);
 	EPathFollowingRequestResult::Type result;
 	result = Owner->aicontroller->MoveToLocation(hideloc.Loc);
 	if (result == EPathFollowingRequestResult::Failed)
 		return false;
 
-	PRINT_LOG(TEXT("Find!"));
+	//PRINT_LOG(TEXT("Find!"));
 	bIsWall = hideloc.bIsWall;
 	openType = hideloc.openType;
 
@@ -581,14 +615,14 @@ void UAC_AI_Combat::StateChange(ECOMBAT ChageState)
 	case ECOMBAT::HIDDENBEWARE:
 		Owner->GetCharacterMovement()->MaxWalkSpeed = FMath::RandRange(100, 300);
 		bIsFocus = true;
-		PRINT_LOG(TEXT("Cover1Start"));
+		//PRINT_LOG(TEXT("Cover1Start"));
 		break;
 	case ECOMBAT::HIDDENRUN:
 		Owner->bUseControllerRotationYaw = true;
 		bIsFocus = false;
 		bIsSit = false;
 		Owner->GetCharacterMovement()->MaxWalkSpeed = 600;
-		PRINT_LOG(TEXT("Cover2Start"));
+		//PRINT_LOG(TEXT("Cover2Start"));
 		break;
 	case ECOMBAT::CHASE:
 		Owner->GetCharacterMovement()->MaxWalkSpeed = 100;

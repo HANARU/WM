@@ -81,7 +81,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class USoundCue* vocalsound;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
-	class UParticleSystem* fireEffect;
+	class UNiagaraSystem* fireEffect;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class UNiagaraSystem* hitEffect;
 	UPROPERTY(EditAnywhere, Category = "USERAI")
 	TArray<FName> TargetBones;
 
