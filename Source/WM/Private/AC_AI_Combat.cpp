@@ -237,7 +237,7 @@ void UAC_AI_Combat::Fire()
 
 		}
 		if(Owner->Target)
-			Owner->Target->MakeNoise(1., nullptr, Owner->GetActorLocation(), 1000.);
+			Owner->Target->MakeNoise(1., nullptr, Owner->GetActorLocation(), 10000.);
 		float distance = FVector::Distance(Owner->GetActorLocation(), firepoint);
 		float maxrand;
 		if (FMath::RandRange(0, 100) > 1)
@@ -365,6 +365,9 @@ void UAC_AI_Combat::OnThreat()
 		Owner->bIsBattle = true;
 		Owner->bIsCombat = true;
 		Owner->animins->bIsCombat = Owner->bIsBattle;
+		//AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
+		if (player)
+			player->MakeNoise(1., nullptr, player->GetActorLocation(), 1000.);
 		if (FMath::RandRange(0, 3) == 0)
 		{
 			Owner->audioComp->SetSound(vocalsound);
@@ -465,6 +468,7 @@ void UAC_AI_Combat::OnHearNoise(APawn* OtherPawn, const FVector& Location, float
 		Owner->TargetDir.Normalize();
 		if (!Owner->bIsBattle)
 		{
+			OnThreat();
 			Owner->aicontroller->StopMovement();
 			Owner->SetActorRotation(FRotator(0, Owner->TargetDir.Rotation().Yaw, 0));
 		}
@@ -626,8 +630,11 @@ void UAC_AI_Combat::StateChange(ECOMBAT ChageState)
 	case ECOMBAT::HIDDENRUN:
 		Owner->bUseControllerRotationYaw = true;
 		bIsFocus = false;
-		bIsSit = false;
-		Owner->GetCharacterMovement()->MaxWalkSpeed = 600;
+		if (bIsSit)
+			Owner->GetCharacterMovement()->MaxWalkSpeed = 400;
+		else
+			Owner->GetCharacterMovement()->MaxWalkSpeed = 600;
+
 		//PRINT_LOG(TEXT("Cover2Start"));
 		break;
 	case ECOMBAT::CHASE:

@@ -75,6 +75,14 @@ void UAC_AI_RunCombat::OnSeePawn(APawn* OtherPawn)
 void UAC_AI_RunCombat::OnHearNoise(APawn* OtherPawn, const FVector& Location, float Volume)
 {
 	if (Owner->bIsdie || Owner->bIshit) return;
+	PRINT_LOG(TEXT("shotsound"));
+	Owner->TargetDir = Location - Owner->GetActorLocation();
+	Owner->TargetDir.Normalize();
+	if (!Owner->bIsBattle)
+	{
+		Owner->aicontroller->StopMovement();
+		Owner->SetActorRotation(FRotator(0, Owner->TargetDir.Rotation().Yaw, 0));
+	}
 	OnThreat();
 }
 
@@ -119,6 +127,9 @@ void UAC_AI_RunCombat::OnThreat()
 		{
 			Owner->audioComp->SetSound(screamsound);
 			Owner->audioComp->Play();
+			///AMyPlayer* player = Cast<AMyPlayer>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyPlayer::StaticClass()));
+			if (player)
+				player->MakeNoise(1., nullptr, player->GetActorLocation(), 1000.);
 			//UGameplayStatics::PlaySoundAtLocation(GetWorld(), screamsound, Owner->GetActorLocation());
 		}
 	}
