@@ -19,6 +19,7 @@
 #include "AC_AI_Hp.h"
 #include <Components/AudioComponent.h>
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
+#include "Components/LineBatchComponent.h"
 // Sets default values for this component's properties
 UAC_AI_Combat::UAC_AI_Combat()
 {
@@ -267,10 +268,12 @@ void UAC_AI_Combat::Fire()
 		GetWorld()->LineTraceSingleByChannel(HitResult, firepointComp->GetComponentLocation(), boneloc, ECC_GameTraceChannel6, QueryParams);
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), firesound, firepointComp->GetComponentLocation());
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), bulletsound, firepoint, FMath::FRandRange(0., 1.));
-		if(HitResult.bBlockingHit)
-			DrawDebugLine(GetWorld(), firepointComp->GetComponentLocation(), HitResult.Location, FColor::Red, false, -1.f, 0, 2.0f);
+		if (HitResult.bBlockingHit)
+			GetWorld()->PersistentLineBatcher->DrawLine(firepointComp->GetComponentLocation(), HitResult.Location, FColor::Red, false, -1.f, .01f);
 		else
-			DrawDebugLine(GetWorld(), firepointComp->GetComponentLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
+			GetWorld()->PersistentLineBatcher->DrawLine(firepointComp->GetComponentLocation(), boneloc, FColor::Red, false, -1.f, .01f);
+
+		//	DrawDebugLine(GetWorld(), firepointComp->GetComponentLocation(), boneloc, FColor::Red, false, -1.f, 0, 2.0f);
 		Owner->animins->Montage_Play(Owner->animins->fireMontage);
 		if (HitResult.bBlockingHit)
 		{
