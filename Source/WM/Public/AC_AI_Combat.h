@@ -81,6 +81,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class USoundCue* vocalsound;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
+	class USoundCue* wallhitsound;
+	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class UNiagaraSystem* fireEffect;
 	UPROPERTY(EditAnywhere, Category = "FSMBATTLE")
 	class UNiagaraSystem* hitEffect;

@@ -41,6 +41,11 @@ UAC_AI_Combat::UAC_AI_Combat()
 	{
 		hitEffect = tempHitEffect.Object;
 	}
+	ConstructorHelpers::FObjectFinder<USoundCue> tempWallHitSound(TEXT("/Script/Engine.SoundCue'/Game/5_Sound/Que/SC_BulletHitSound.SC_BulletHitSound'"));
+	if (tempWallHitSound.Succeeded())
+	{
+		wallhitsound = tempWallHitSound.Object;
+		}
 	// ...
 }
 
@@ -304,6 +309,7 @@ void UAC_AI_Combat::Fire()
 			}
 			else
 			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), wallhitsound, HitResult.Location);
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), hitEffect, HitResult.Location, FRotator(), FVector(2));
 			}
 		}
