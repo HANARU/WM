@@ -733,6 +733,7 @@ void AMyPlayer::Shoot()
 	// Bullet Trace
 	GetWorld()->SpawnActor<ABullet>(BulletFactory, firePosition, (EndLocation -firePosition).Rotation());
 
+	MakeNoise(1., nullptr, this->GetActorLocation(), 1000.);
 
 	// 데미지
 	AAI_EnemyBase* Enemy = Cast<AAI_EnemyBase>(HitResult.GetActor());
@@ -1027,66 +1028,66 @@ void AMyPlayer::CoverMovement()
 bool AMyPlayer::AfterCoverLineTrace(bool canGo)
 {
 	// 코너 이동을 위한
-	FVector CornerLineTraceStart = rightDetect ? GetMesh()->GetComponentLocation() + GetCapsuleComponent()->GetRightVector()*50 + GetCapsuleComponent()->GetUpVector()*100  + GetCapsuleComponent()->GetForwardVector()*100: GetMesh()->GetComponentLocation() - GetCapsuleComponent()->GetRightVector() * 150;
-	FVector CornerLineTraceEnd = CornerLineTraceStart - GetCapsuleComponent()->GetForwardVector() * 150;
-	TArray<AActor*> ActorsToIgnore;
+	//FVector CornerLineTraceStart = rightDetect ? GetMesh()->GetComponentLocation() + GetCapsuleComponent()->GetRightVector()*50 + GetCapsuleComponent()->GetUpVector()*100  + GetCapsuleComponent()->GetForwardVector()*100: GetMesh()->GetComponentLocation() - GetCapsuleComponent()->GetRightVector() * 150;
+	//FVector CornerLineTraceEnd = CornerLineTraceStart - GetCapsuleComponent()->GetForwardVector() * 150;
+	//TArray<AActor*> ActorsToIgnore;
 
-	// Line Trace 출력값
-	FHitResult CornerLineHitResult;
-	bool CornerHit = false; 
-	if(canGoDetect==false)
-	CornerHit = UKismetSystemLibrary::LineTraceSingle(
-		this,
-		CornerLineTraceStart,
-		CornerLineTraceEnd,
-		ETraceTypeQuery::TraceTypeQuery3,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
-		CornerLineHitResult,
-		true
-	);
+	//// Line Trace 출력값
+	//FHitResult CornerLineHitResult;
+	//bool CornerHit = false; 
+	//if(canGoDetect==false)
+	//CornerHit = UKismetSystemLibrary::LineTraceSingle(
+	//	this,
+	//	CornerLineTraceStart,
+	//	CornerLineTraceEnd,
+	//	ETraceTypeQuery::TraceTypeQuery3,
+	//	false,
+	//	ActorsToIgnore,
+	//	EDrawDebugTrace::ForOneFrame,
+	//	CornerLineHitResult,
+	//	true
+	//);
 
-	if (CornerHit) {
-		float deltaRotate = GetDeltaRotate();
-		UE_LOG(LogTemp,Warning,TEXT("%f"), deltaRotate);
-		if (rightDetect && deltaRotate<-20 && deltaRotate>-140 && canGo) {
-			//UAIBlueprintHelperLibrary::SimpleMoveToLocation(UGameplayStatics::GetPlayerController(GetWorld(), 0), FVector(-830, -881, 0));
-			//UE_LOG(LogTemp,Warning,TEXT("%f , %f"), CornerLineHitResult.Location.X, CornerLineHitResult.Location.Y);
-			CoverLineHitResult = CornerLineHitResult;
-			// Object의 Normal Vector를 가져온다. 
-			CoverObjectNormal = CornerLineHitResult.Normal;
-			CoverObjectNormal.Normalize();
+	//if (CornerHit) {
+	//	float deltaRotate = GetDeltaRotate();
+	//	UE_LOG(LogTemp,Warning,TEXT("%f"), deltaRotate);
+	//	if (rightDetect && deltaRotate<-20 && deltaRotate>-140 && canGo) {
+	//		//UAIBlueprintHelperLibrary::SimpleMoveToLocation(UGameplayStatics::GetPlayerController(GetWorld(), 0), FVector(-830, -881, 0));
+	//		//UE_LOG(LogTemp,Warning,TEXT("%f , %f"), CornerLineHitResult.Location.X, CornerLineHitResult.Location.Y);
+	//		CoverLineHitResult = CornerLineHitResult;
+	//		// Object의 Normal Vector를 가져온다. 
+	//		CoverObjectNormal = CornerLineHitResult.Normal;
+	//		CoverObjectNormal.Normalize();
 
-			// Object의 (위치,크기) 출력
-			CornerLineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
-			HitActorOrigin = CornerLineHitResult.Location;
-			DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
-			// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
-			isCovering = true;
-		}
-		else if(leftDetect && deltaRotate < -40 && deltaRotate>-140 && canGo){
-			//만약 Object 식별이 되었다면 전역변수에 할당해준다.
-			CoverLineHitResult = CornerLineHitResult;
-			// Object의 Normal Vector를 가져온다. 
-			CoverObjectNormal = CornerLineHitResult.Normal;
-			CoverObjectNormal.Normalize();
+	//		// Object의 (위치,크기) 출력
+	//		CornerLineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
+	//		HitActorOrigin = CornerLineHitResult.Location;
+	//		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
+	//		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
+	//		isCovering = true;
+	//	}
+	//	else if(leftDetect && deltaRotate < -40 && deltaRotate>-140 && canGo){
+	//		//만약 Object 식별이 되었다면 전역변수에 할당해준다.
+	//		CoverLineHitResult = CornerLineHitResult;
+	//		// Object의 Normal Vector를 가져온다. 
+	//		CoverObjectNormal = CornerLineHitResult.Normal;
+	//		CoverObjectNormal.Normalize();
 
-			// Object의 (위치,크기) 출력
-			CornerLineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
-			HitActorOrigin = CornerLineHitResult.Location;
-			DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
-			// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
-			isCovering = true;
-			CoverToCover = false;
-		}
-	}
+	//		// Object의 (위치,크기) 출력
+	//		CornerLineHitResult.GetActor()->GetActorBounds(false, HitActorOrigin, HitActorExtent);
+	//		HitActorOrigin = CornerLineHitResult.Location;
+	//		DistanceToCoverObject = (HitActorOrigin - GetMesh()->GetComponentLocation()).Size() + 10;
+	//		// 이후 엄폐하는 행위를 시도하므로 true로 변경을 해준다. 
+	//		isCovering = true;
+	//		CoverToCover = false;
+	//	}
+	//}
 
 	// 엄폐 이동을 위한
 	// Line Trace 입력 값
 	FVector LineTraceStart = PlayerCamera->GetComponentLocation();
-	FVector LineTraceEnd = LineTraceStart +  PlayerCamera->GetForwardVector() * 1000;
-	//TArray<AActor*> ActorsToIgnore;
+	FVector LineTraceEnd = LineTraceStart +  PlayerCamera->GetForwardVector() * 2000;
+	TArray<AActor*> ActorsToIgnore;
 
 	// Line Trace 출력값
 	FHitResult LineHitResult;
