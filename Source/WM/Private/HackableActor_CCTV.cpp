@@ -65,6 +65,20 @@ AHackableActor_CCTV::AHackableActor_CCTV()
 	{
 		FocusedInteractable = TempUI.Class;
 	}
+
+	ConstructorHelpers::FObjectFinder<USoundBase> Player2CCTVSound(TEXT("'/Game/5_Sound/SFX/SC_Player2CCTV'"));
+
+	if (Player2CCTVSound.Succeeded())
+	{
+		Player2CCTV = Player2CCTVSound.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<USoundBase> CCTV2PlayerSound(TEXT("'/Game/5_Sound/SFX/SC_CCTV2Player'"));
+
+	if (CCTV2PlayerSound.Succeeded())
+	{
+		CCTV2Player = CCTV2PlayerSound.Object;
+	}
 }
 
 void AHackableActor_CCTV::BeginPlay()
@@ -93,7 +107,7 @@ void AHackableActor_CCTV::ActivateCCTV()
 
 	APlayerController* MyPlayerController = UGameplayStatics::GetPlayerController(this, 0);
 
-	Player2CCTV = LoadObject<USoundWave>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/5_Sound/SFX/SC_Player2CCTV.SC_Player2CCTV'"));
+	//Player2CCTV = LoadObject<USoundWave>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/5_Sound/SFX/SC_Player2CCTV.SC_Player2CCTV'"));
 	UGameplayStatics::PlaySound2D(GetWorld(), Player2CCTV);
 
 	MyPlayerController->SetViewTargetWithBlend(this, 1.f);
@@ -231,7 +245,7 @@ void AHackableActor_CCTV::Back2Player(AMyPlayer* SinglePlayer, APlayerController
 
 	OnDisableProcess();
 
-	CCTV2Player = LoadObject<USoundWave>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/5_Sound/SFX/SC_CCTV2Player.SC_CCTV2Player'"));
+	//CCTV2Player = LoadObject<USoundWave>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/5_Sound/SFX/SC_CCTV2Player.SC_CCTV2Player'"));
 	UGameplayStatics::PlaySound2D(GetWorld(), CCTV2Player);
 
 	PlayerController->SetViewTargetWithBlend(SinglePlayer, 1.f);
